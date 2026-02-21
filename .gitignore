@@ -2,3 +2,4 @@
 patches_debug/
 models/IAM_data_reshaped.pt
 models/RIMES_data_reshaped.pt
+scrabblegan_arshjot/__pycache__/

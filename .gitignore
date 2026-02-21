@@ -6,3 +6,7 @@ scrabblegan_arshjot/__pycache__/
 scrabblegan_arshjot/data/Lexicon/Lexique383.tsv
 scrabblegan_arshjot/data/Lexicon/words.txt
 scrabblegan_arshjot/output/*png
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

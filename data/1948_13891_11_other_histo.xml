@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="http://www.loc.gov/standards/alto/ns-v4#"
+      xsi:schemaLocation="http://www.loc.gov/standards/alto/ns-v4# http://www.loc.gov/standards/alto/v4/alto-4-2.xsd">
+  <Description>
+    <MeasurementUnit>pixel</MeasurementUnit>
+    <sourceImageInformation>
+      <fileName>1948_13891_11_other_histo.jpg</fileName>
+    </sourceImageInformation>
+  </Description>
+  <Tags>
+    <OtherTag ID="BT7" LABEL="CustomZone" DESCRIPTION="block type CustomZone"/><OtherTag ID="BT8" LABEL="DamageZone" DESCRIPTION="block type DamageZone"/><OtherTag ID="BT9" LABEL="DigitizationArtefactZone" DESCRIPTION="block type DigitizationArtefactZone"/><OtherTag ID="BT10" LABEL="DropCapitalZone" DESCRIPTION="block type DropCapitalZone"/><OtherTag ID="BT11" LABEL="GraphicZone" DESCRIPTION="block type GraphicZone"/><OtherTag ID="BT12" LABEL="MainZone" DESCRIPTION="block type MainZone"/><OtherTag ID="BT13" LABEL="MarginTextZone" DESCRIPTION="block type MarginTextZone"/><OtherTag ID="BT14" LABEL="MusicZone" DESCRIPTION="block type MusicZone"/><OtherTag ID="BT15" LABEL="NumberingZone" DESCRIPTION="block type NumberingZone"/><OtherTag ID="BT17" LABEL="QuireMarksZone" DESCRIPTION="block type QuireMarksZone"/><OtherTag ID="BT18" LABEL="RunningTitleZone" DESCRIPTION="block type RunningTitleZone"/><OtherTag ID="BT19" LABEL="SealZone" DESCRIPTION="block type SealZone"/><OtherTag ID="BT20" LABEL="StampZone" DESCRIPTION="block type StampZone"/><OtherTag ID="BT21" LABEL="TableZone" DESCRIPTION="block type TableZone"/><OtherTag ID="BT22" LABEL="TitlePageZone" DESCRIPTION="block type TitlePageZone"/>
+    <OtherTag ID="LT7" LABEL="CustomLine" DESCRIPTION="line type CustomLine"/><OtherTag ID="LT8" LABEL="DefaultLine" DESCRIPTION="line type DefaultLine"/><OtherTag ID="LT9" LABEL="DropCapitalLine" DESCRIPTION="line type DropCapitalLine"/><OtherTag ID="LT10" LABEL="HeadingLine" DESCRIPTION="line type HeadingLine"/><OtherTag ID="LT11" LABEL="InterlinearLine" DESCRIPTION="line type InterlinearLine"/><OtherTag ID="LT12" LABEL="MusicLine" DESCRIPTION="line type MusicLine"/><OtherTag ID="LT1050" LABEL="default" DESCRIPTION="line type default"/>
+  </Tags>
+  <Layout>
+    <Page WIDTH="1984"
+          HEIGHT="2606"
+          PHYSICAL_IMG_NR="0"
+          ID="eSc_dummypage_">
+      <PrintSpace HPOS="0"
+                  VPOS="0"
+                  WIDTH="1984"
+                  HEIGHT="2606">
+        <TextBlock ID="eSc_dummyblock_">
+          <TextLine ID="eSc_line_b906d7d1"
+                    BASELINE="209 224 520 231" 
+                    HPOS="206"
+                    VPOS="138"
+                    WIDTH="313"
+                    HEIGHT="148">
+            <Shape><Polygon POINTS="208 223 206 269 399 269 421 284 423 284 425 284 428 286 482 286 482 284 484 284 517 269 519 230 519 169 451 149 449 149 447 149 445 149 443 149 417 169 378 152 375 152 208 138 208 223"/></Shape>
+            <String CONTENT="Histologie"
+                    HPOS="206"
+                    VPOS="138"
+                    WIDTH="313"
+                    HEIGHT="148"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_d3734f05"
+                    TAGREFS="LT1050"
+                    BASELINE="263 321 1115 317 1151 317 1648 323" 
+                    HPOS="260.0"
+                    VPOS="247.0"
+                    WIDTH="1387.0"
+                    HEIGHT="117.0">
+            <Shape><Polygon POINTS="262 349 391 343 438 364 488 364 534 343 664 343 704 364 799 364 819 347 862 362 871 362 901 343 1019 343 1095 364 1169 364 1195 347 1355 362 1486 343 1527 358 1534 358 1566 345 1608 362 1645 358 1647 321 1645 264 1590 247 1503 264 1447 247 1438 247 1416 269 1290 269 1262 254 1253 254 1238 269 1171 269 1156 251 1147 251 1125 262 1075 247 1066 247 1049 262 1001 254 969 267 910 249 714 247 680 258 647 247 638 247 617 267 582 249 575 249 521 269 432 269 408 251 397 251 384 260 295 249 260 267 262 319"/></Shape>
+            <String CONTENT="Cellules nerveuses pâles dont on peut suivre loin les"
+                    HPOS="260.0"
+                    VPOS="247.0"
+                    WIDTH="1387.0"
+                    HEIGHT="117.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_ce4a3741"
+                    TAGREFS="LT1050"
+                    BASELINE="268 418 669 421" 
+                    HPOS="265.0"
+                    VPOS="360.0"
+                    WIDTH="402.0"
+                    HEIGHT="122.0">
+            <Shape><Polygon POINTS="267 416 265 477 310 479 312 479 315 479 317 479 325 473 354 451 378 466 399 479 402 479 404 479 406 482 445 482 445 479 447 479 449 479 475 456 499 438 664 438 667 419 662 360 538 364 536 364 534 364 534 367 523 375 267 362 267 416"/></Shape>
+            <String CONTENT="prolongements."
+                    HPOS="265.0"
+                    VPOS="360.0"
+                    WIDTH="402.0"
+                    HEIGHT="122.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_e90a6d3a"
+                    BASELINE="287 506 353 503 440 506" 
+                    HPOS="284.0"
+                    VPOS="436.0"
+                    WIDTH="154.0"
+                    HEIGHT="96.0">
+            <Shape><Polygon POINTS="284 532 436 532 438 505 436 466 286 436 286 505"/></Shape>
+            <String CONTENT="Stase"
+                    HPOS="284.0"
+                    VPOS="436.0"
+                    WIDTH="154.0"
+                    HEIGHT="96.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_da4f0d7c"
+                    TAGREFS="LT1050"
+                    BASELINE="276 605 1018 605 1104 603 1726 609" 
+                    HPOS="273.0"
+                    VPOS="536.0"
+                    WIDTH="1452.0"
+                    HEIGHT="119.0">
+            <Shape><Polygon POINTS="275 603 273 627 360 631 378 649 384 651 438 651 471 627 497 638 536 627 588 649 595 649 634 629 641 629 684 651 771 629 1021 634 1045 651 1056 651 1095 629 1193 629 1260 655 1334 655 1355 638 1438 655 1623 655 1723 636 1725 562 1521 540 1473 555 1449 566 1366 566 1347 549 1321 553 1286 564 1021 564 984 545 967 547 914 562 843 538 710 549 660 536 654 536 601 558 567 549 465 560 408 538 275 536 275 603"/></Shape>
+            <String CONTENT="Microglie : quelques bâtonnets ; microgliocytes parfois"
+                    HPOS="273.0"
+                    VPOS="536.0"
+                    WIDTH="1452.0"
+                    HEIGHT="119.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_db0962bb"
+                    TAGREFS="LT1050"
+                    BASELINE="267 694 1898 702" 
+                    HPOS="266.0"
+                    VPOS="641.0"
+                    WIDTH="1632.0"
+                    HEIGHT="95.0">
+            <Shape><Polygon POINTS="267 694 266 718 330 716 349 720 372 725 373 725 457 720 524 716 535 720 550 725 551 725 553 725 554 725 566 720 580 715 595 720 605 723 606 723 608 723 609 723 616 720 625 716 825 716 870 720 983 732 984 732 986 732 1019 720 1028 718 1041 720 1096 734 1097 735 1173 735 1173 734 1229 720 1245 718 1280 720 1383 731 1384 731 1500 722 1595 736 1597 736 1771 728 1795 736 1797 736 1798 736 1800 736 1846 720 1850 720 1895 720 1898 702 1898 668 1840 647 1839 647 1714 647 1713 647 1711 647 1681 663 1634 664 1585 667 1572 664 1511 645 1510 645 1458 645 1456 645 1455 645 1420 661 1409 667 1300 667 1278 658 1236 644 1235 644 1233 644 1177 651 1126 645 1125 645 1123 645 1096 655 1073 664 1049 654 1028 645 1026 645 1025 645 1023 645 1007 654 992 661 958 652 941 648 939 648 938 648 936 648 923 652 894 661 864 654 863 654 861 654 812 663 787 650 773 642 771 642 770 642 768 642 747 648 721 657 629 655 628 655 627 655 612 663 574 652 573 652 572 652 570 652 547 661 466 654 464 654 406 661 267 641 267 694"/></Shape>
+            <String CONTENT="intimèment accolés contre les capillaires. Filtres argentaffines"
+                    HPOS="266.0"
+                    VPOS="641.0"
+                    WIDTH="1632.0"
+                    HEIGHT="95.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_4ac42578"
+                    TAGREFS="LT1050"
+                    BASELINE="273 794 1033 789 1483 794" 
+                    HPOS="269.0"
+                    VPOS="734.0"
+                    WIDTH="1213.0"
+                    HEIGHT="112.0">
+            <Shape><Polygon POINTS="271 792 275 844 315 820 384 831 410 820 517 831 528 820 571 838 580 838 606 820 727 820 814 844 958 842 1008 820 1075 820 1145 846 1234 846 1273 829 1290 844 1297 846 1479 846 1482 792 1479 751 1408 734 1316 753 1232 753 1201 738 1193 738 1179 753 1034 753 1021 738 958 736 873 751 821 734 660 734 614 751 597 734 556 734 534 753 462 753 445 734 269 734 271 792"/></Shape>
+            <String CONTENT="(structures du vaisseau ou microgliocyte ?)"
+                    HPOS="269.0"
+                    VPOS="734.0"
+                    WIDTH="1213.0"
+                    HEIGHT="112.0"
+                    ></String>
+          </TextLine>
+        </TextBlock>
+      </PrintSpace>
+    </Page>
+  </Layout>
+</alto>

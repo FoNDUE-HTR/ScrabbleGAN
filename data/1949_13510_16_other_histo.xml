@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="http://www.loc.gov/standards/alto/ns-v4#"
+      xsi:schemaLocation="http://www.loc.gov/standards/alto/ns-v4# http://www.loc.gov/standards/alto/v4/alto-4-2.xsd">
+  <Description>
+    <MeasurementUnit>pixel</MeasurementUnit>
+    <sourceImageInformation>
+      <fileName>1949_13510_16_other_histo.jpg</fileName>
+    </sourceImageInformation>
+  </Description>
+  <Tags>
+    <OtherTag ID="BT7" LABEL="CustomZone" DESCRIPTION="block type CustomZone"/><OtherTag ID="BT8" LABEL="DamageZone" DESCRIPTION="block type DamageZone"/><OtherTag ID="BT9" LABEL="DigitizationArtefactZone" DESCRIPTION="block type DigitizationArtefactZone"/><OtherTag ID="BT10" LABEL="DropCapitalZone" DESCRIPTION="block type DropCapitalZone"/><OtherTag ID="BT11" LABEL="GraphicZone" DESCRIPTION="block type GraphicZone"/><OtherTag ID="BT12" LABEL="MainZone" DESCRIPTION="block type MainZone"/><OtherTag ID="BT13" LABEL="MarginTextZone" DESCRIPTION="block type MarginTextZone"/><OtherTag ID="BT14" LABEL="MusicZone" DESCRIPTION="block type MusicZone"/><OtherTag ID="BT15" LABEL="NumberingZone" DESCRIPTION="block type NumberingZone"/><OtherTag ID="BT17" LABEL="QuireMarksZone" DESCRIPTION="block type QuireMarksZone"/><OtherTag ID="BT18" LABEL="RunningTitleZone" DESCRIPTION="block type RunningTitleZone"/><OtherTag ID="BT19" LABEL="SealZone" DESCRIPTION="block type SealZone"/><OtherTag ID="BT20" LABEL="StampZone" DESCRIPTION="block type StampZone"/><OtherTag ID="BT21" LABEL="TableZone" DESCRIPTION="block type TableZone"/><OtherTag ID="BT22" LABEL="TitlePageZone" DESCRIPTION="block type TitlePageZone"/>
+    <OtherTag ID="LT7" LABEL="CustomLine" DESCRIPTION="line type CustomLine"/><OtherTag ID="LT8" LABEL="DefaultLine" DESCRIPTION="line type DefaultLine"/><OtherTag ID="LT9" LABEL="DropCapitalLine" DESCRIPTION="line type DropCapitalLine"/><OtherTag ID="LT10" LABEL="HeadingLine" DESCRIPTION="line type HeadingLine"/><OtherTag ID="LT11" LABEL="InterlinearLine" DESCRIPTION="line type InterlinearLine"/><OtherTag ID="LT12" LABEL="MusicLine" DESCRIPTION="line type MusicLine"/><OtherTag ID="LT1050" LABEL="default" DESCRIPTION="line type default"/>
+  </Tags>
+  <Layout>
+    <Page WIDTH="2076"
+          HEIGHT="2616"
+          PHYSICAL_IMG_NR="1"
+          ID="eSc_dummypage_">
+      <PrintSpace HPOS="0"
+                  VPOS="0"
+                  WIDTH="2076"
+                  HEIGHT="2616">
+        <TextBlock ID="eSc_dummyblock_">
+          <TextLine ID="eSc_line_9530e865"
+                    TAGREFS="LT1050"
+                    BASELINE="1122 145 2019 142" 
+                    HPOS="1120.0"
+                    VPOS="88.0"
+                    WIDTH="899.0"
+                    HEIGHT="103.0">
+            <Shape><Polygon POINTS="1760 94 1745 93 1737 93 1725 103 1700 97 1699 97 1698 97 1696 97 1695 97 1686 104 1673 113 1581 113 1567 101 1552 88 1551 88 1549 88 1548 88 1497 97 1468 88 1466 88 1465 88 1463 88 1446 97 1442 100 1437 97 1420 88 1418 88 1363 88 1362 88 1360 88 1359 88 1350 95 1324 114 1311 114 1290 94 1286 90 1286 88 1285 88 1283 88 1231 88 1229 88 1228 88 1226 88 1222 91 1193 111 1160 90 1158 88 1157 88 1155 88 1154 88 1120 88 1122 145 1122 167 1161 164 1165 167 1189 188 1189 190 1190 190 1192 190 1193 191 1288 191 1288 190 1289 190 1290 190 1290 188 1306 174 1337 190 1338 190 1340 191 1411 191 1411 190 1459 183 1461 183 1462 183 1484 167 1517 177 1519 177 1520 177 1581 165 1588 164 1645 164 1650 165 1661 172 1663 172 1664 172 1666 172 1708 165 1719 164 1727 165 1751 172 1753 172 1754 172 1756 172 1775 165 1780 162 1783 165 1792 172 1793 172 1795 172 1796 172 1798 172 1823 165 1827 164 1828 165 1850 183 1852 183 1853 183 1855 183 1856 183 1857 183 1866 175 1901 181 1903 181 1904 181 1905 181 1924 165 1978 175 1980 175 1981 175 2019 164 2019 142 2010 111 1808 111 1798 107 1766 94 1760 94"/></Shape>
+            <String CONTENT="Microglie spécialement volumineuse"
+                    HPOS="1120.0"
+                    VPOS="88.0"
+                    WIDTH="899.0"
+                    HEIGHT="103.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_7e8837d7"
+                    TAGREFS="LT1050"
+                    BASELINE="208 165 504 156" 
+                    HPOS="202.0"
+                    VPOS="67.0"
+                    WIDTH="301.0"
+                    HEIGHT="135.0">
+            <Shape><Polygon POINTS="207 198 501 202 503 154 497 89 425 91 418 89 385 67 383 67 381 67 379 67 377 67 375 67 375 69 359 82 222 71 220 71 218 71 215 71 215 74 202 82 207 163"/></Shape>
+            <String CONTENT="Histologie"
+                    HPOS="202.0"
+                    VPOS="67.0"
+                    WIDTH="301.0"
+                    HEIGHT="135.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_13e84718"
+                    TAGREFS="LT1050"
+                    BASELINE="231 249 462 255 734 245 1699 242" 
+                    HPOS="228.0"
+                    VPOS="180.0"
+                    WIDTH="1470.0"
+                    HEIGHT="107.0">
+            <Shape><Polygon POINTS="228 287 407 287 436 268 614 268 634 283 647 283 697 270 787 281 817 268 946 274 1009 263 1081 283 1186 263 1297 276 1310 276 1341 265 1382 283 1454 265 1502 279 1583 265 1663 281 1698 272 1698 241 1692 187 1622 198 1587 180 1502 198 1426 185 1395 183 1376 202 1232 202 1188 183 1011 183 981 202 933 202 878 185 867 185 841 202 734 191 588 202 514 187 508 187 492 202 431 202 381 185 318 202 298 185 228 185 228 287"/></Shape>
+            <String CONTENT="FEm (g) torsions vasculaires. Infiltration périvasculaire."
+                    HPOS="228.0"
+                    VPOS="180.0"
+                    WIDTH="1470.0"
+                    HEIGHT="107.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_6709acac"
+                    TAGREFS="LT1050"
+                    BASELINE="503 340 1343 334 1753 338" 
+                    HPOS="501.0"
+                    VPOS="280.0"
+                    WIDTH="1252.0"
+                    HEIGHT="103.0">
+            <Shape><Polygon POINTS="503 340 503 383 533 382 534 382 536 382 568 360 652 358 693 358 728 379 732 382 734 382 735 382 737 383 766 383 766 382 767 382 782 377 840 361 873 376 878 377 879 377 880 377 882 377 886 376 918 358 943 358 963 373 971 379 972 379 974 379 1051 380 1052 380 1053 380 1080 372 1122 357 1216 366 1218 366 1219 366 1244 356 1369 356 1386 364 1414 379 1415 379 1417 380 1462 380 1462 379 1463 379 1495 361 1506 357 1514 361 1551 379 1552 379 1554 380 1626 380 1626 379 1628 379 1664 358 1666 357 1751 356 1753 338 1750 303 1696 303 1692 302 1650 280 1648 280 1647 280 1450 283 1449 283 1447 283 1424 297 1413 305 1320 305 1295 296 1257 283 1256 283 1254 283 1253 283 1229 295 1205 284 1203 284 1202 284 1200 284 1183 295 1164 305 1106 295 1104 295 1068 300 1056 292 1042 281 1040 281 1039 281 1013 281 1011 281 1010 281 992 292 966 306 907 306 838 289 837 289 835 289 834 289 833 289 831 289 802 308 719 308 662 292 661 292 660 292 619 295 604 286 601 283 600 283 598 283 597 283 501 283 503 340"/></Shape>
+            <String CONTENT="gliose marginale, imprégnation de la microglie au globus."
+                    HPOS="501.0"
+                    VPOS="280.0"
+                    WIDTH="1252.0"
+                    HEIGHT="103.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_64045e3c"
+                    TAGREFS="LT1050"
+                    BASELINE="500 431 1766 430" 
+                    HPOS="498.0"
+                    VPOS="372.0"
+                    WIDTH="1268.0"
+                    HEIGHT="95.0">
+            <Shape><Polygon POINTS="500 431 500 467 604 466 606 466 607 466 636 449 652 456 654 456 655 456 657 456 658 456 670 447 723 457 725 457 944 447 979 456 981 456 982 456 984 456 1014 449 1039 462 1040 462 1042 462 1043 462 1045 462 1062 449 1181 447 1241 462 1251 463 1253 463 1270 462 1314 454 1324 460 1333 466 1334 466 1336 466 1337 466 1453 459 1495 457 1504 459 1525 463 1526 463 1527 463 1546 459 1590 447 1616 447 1632 457 1634 459 1635 459 1636 459 1638 459 1650 457 1714 447 1763 456 1766 430 1763 396 1696 396 1696 395 1636 372 1635 372 1634 372 1632 372 1558 395 1555 396 1402 396 1399 393 1376 382 1375 382 1373 382 1331 388 1308 372 1306 372 1305 372 1237 372 1235 372 1234 372 1183 393 1177 395 1167 393 1139 388 1138 388 1110 393 1099 395 1091 393 1053 379 1052 379 1051 379 1049 379 1014 392 981 372 979 372 978 372 902 372 901 372 899 372 898 372 866 392 862 395 837 392 782 385 780 385 779 385 766 392 758 396 719 396 709 392 661 372 660 372 593 372 591 372 590 372 555 386 530 374 529 374 527 374 526 374 498 388 500 431"/></Shape>
+            <String CONTENT="qq. &quot;bâtonnets&quot;. Abondance du fer périvasculaire"
+                    HPOS="498.0"
+                    VPOS="372.0"
+                    WIDTH="1268.0"
+                    HEIGHT="95.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_648aef56"
+                    TAGREFS="LT1050"
+                    BASELINE="208 541 415 546 473 529 1391 518 2004 523" 
+                    HPOS="204.0"
+                    VPOS="451.0"
+                    WIDTH="1797.0"
+                    HEIGHT="120.0">
+            <Shape><Polygon POINTS="207 540 207 568 1214 553 1293 571 1371 551 1445 568 1866 566 1897 551 1997 562 2001 521 1995 451 1938 470 1737 457 1676 473 1633 473 1609 453 1522 453 1491 475 1395 475 1349 455 1299 468 1273 455 1120 455 1051 475 795 457 708 479 610 479 586 459 577 459 534 473 488 459 479 459 457 473 340 459 335 459 298 479 204 459 207 540"/></Shape>
+            <String CONTENT="FAp (g) sclérose de 1 territoire artériel (perforants) télangiectasique (SG"
+                    HPOS="204.0"
+                    VPOS="451.0"
+                    WIDTH="1797.0"
+                    HEIGHT="120.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_9199e93b"
+                    TAGREFS="LT1050"
+                    BASELINE="497 627 681 623" 
+                    HPOS="492.0"
+                    VPOS="560.0"
+                    WIDTH="188.0"
+                    HEIGHT="100.0">
+            <Shape><Polygon POINTS="495 649 630 660 632 660 634 660 680 640 680 621 673 582 638 582 632 577 625 571 625 568 623 568 621 568 619 568 617 568 614 568 610 573 606 575 604 573 588 560 586 560 584 560 582 560 580 560 551 568 525 575 492 562 495 625 495 649"/></Shape>
+            <String CONTENT="+SB)"
+                    HPOS="492.0"
+                    VPOS="560.0"
+                    WIDTH="188.0"
+                    HEIGHT="100.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_f9f84b6f"
+                    TAGREFS="LT1050"
+                    BASELINE="204 716 1447 712 1889 720" 
+                    HPOS="203.0"
+                    VPOS="652.0"
+                    WIDTH="1686.0"
+                    HEIGHT="108.0">
+            <Shape><Polygon POINTS="204 716 204 741 449 736 476 744 526 758 527 758 529 760 577 760 577 758 578 758 614 745 641 736 758 736 782 745 783 745 785 745 825 736 854 748 882 758 883 758 885 760 1206 760 1206 758 1208 758 1228 751 1270 736 1341 749 1343 749 1378 742 1402 752 1408 755 1410 755 1411 755 1413 755 1417 752 1433 745 1474 754 1485 755 1487 755 1488 755 1494 754 1548 736 1575 736 1618 755 1619 755 1620 755 1622 755 1623 755 1625 755 1661 744 1741 748 1743 748 1799 736 1855 757 1856 757 1857 758 1888 758 1889 720 1887 667 1776 667 1764 665 1712 656 1711 656 1625 665 1599 667 1590 664 1561 655 1559 655 1484 655 1482 655 1445 664 1429 667 1410 664 1346 652 1344 652 1176 662 1164 662 1158 662 1096 654 1094 654 1093 654 1077 662 1067 668 1006 668 991 661 968 652 966 652 965 652 963 652 942 661 931 667 891 667 854 661 821 655 819 655 818 655 805 661 789 667 712 659 655 655 654 655 652 655 641 659 623 667 609 659 597 654 596 654 594 654 593 654 581 659 580 659 577 659 539 652 537 652 471 654 469 654 457 658 440 667 369 658 340 655 338 655 203 656 204 716"/></Shape>
+            <String CONTENT="Cervelet infiltration méningée, gliose fibrillaire couche moléculaire,"
+                    HPOS="203.0"
+                    VPOS="652.0"
+                    WIDTH="1686.0"
+                    HEIGHT="108.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_81581d97"
+                    TAGREFS="LT1050"
+                    BASELINE="484 813 806 813" 
+                    HPOS="481.0"
+                    VPOS="745.0"
+                    WIDTH="323.0"
+                    HEIGHT="107.0">
+            <Shape><Polygon POINTS="481 810 481 852 606 837 691 837 697 845 704 850 704 852 706 852 708 852 710 852 804 841 804 810 804 763 750 747 747 747 745 747 743 747 741 747 741 749 730 760 726 765 680 765 652 754 619 745 617 745 614 745 612 745 590 752 547 763 527 747 525 745 523 745 521 745 481 745 481 810"/></Shape>
+            <String CONTENT="fer méningé."
+                    HPOS="481.0"
+                    VPOS="745.0"
+                    WIDTH="323.0"
+                    HEIGHT="107.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_ebccd754"
+                    TAGREFS="LT1050"
+                    BASELINE="194 914 428 905 962 902" 
+                    HPOS="193.0"
+                    VPOS="842.0"
+                    WIDTH="769.0"
+                    HEIGHT="112.0">
+            <Shape><Polygon POINTS="194 914 194 931 274 924 428 930 430 930 632 921 683 922 715 946 725 954 726 954 728 954 729 954 960 951 962 902 958 874 870 874 847 870 806 861 805 861 803 861 782 867 780 869 779 867 763 854 763 853 761 853 760 853 758 853 729 856 713 842 712 842 710 842 686 842 684 842 683 842 636 863 603 879 516 879 507 870 505 870 504 870 503 870 482 874 463 857 460 856 460 854 459 854 428 845 427 845 363 845 361 845 360 845 359 845 350 853 318 882 287 882 257 850 254 848 254 847 252 847 251 847 250 847 193 847 194 914"/></Shape>
+            <String CONTENT="Corne d&#x27;Ammon. et hippocampe"
+                    HPOS="193.0"
+                    VPOS="842.0"
+                    WIDTH="769.0"
+                    HEIGHT="112.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_033d2338"
+                    TAGREFS="LT1050"
+                    BASELINE="494 995 742 1004 1373 992 1942 991" 
+                    HPOS="490.0"
+                    VPOS="926.0"
+                    WIDTH="1450.0"
+                    HEIGHT="124.0">
+            <Shape><Polygon POINTS="492 1037 673 1050 710 1026 819 1022 839 1035 850 1035 865 1024 894 1046 1066 1048 1166 1020 1223 1033 1236 1033 1260 1020 1284 1028 1360 1018 1528 1028 1648 1015 1751 1042 1820 1022 1879 1028 1906 1044 1934 1026 1940 989 1936 946 1696 926 1670 939 1628 928 1533 948 1502 928 1491 928 1474 941 1443 930 1434 930 1404 950 1338 950 1299 930 1151 930 1099 946 1068 930 1061 930 979 952 909 943 726 954 676 937 665 937 619 954 577 937 490 937 492 994"/></Shape>
+            <String CONTENT="Disparition des cell. gangl. ds HF et dans le S. de Sommer,"
+                    HPOS="490.0"
+                    VPOS="926.0"
+                    WIDTH="1450.0"
+                    HEIGHT="124.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_41f7a0e0"
+                    TAGREFS="LT1050"
+                    BASELINE="508 1097 1127 1097" 
+                    HPOS="505.0"
+                    VPOS="1035.0"
+                    WIDTH="620.0"
+                    HEIGHT="109.0">
+            <Shape><Polygon POINTS="505 1096 508 1142 580 1122 658 1140 660 1140 767 1122 841 1142 843 1142 846 1142 848 1144 913 1144 913 1142 915 1142 918 1142 961 1122 1123 1140 1125 1096 1125 1061 1031 1061 1016 1057 909 1035 907 1035 904 1035 850 1052 843 1052 817 1050 669 1035 667 1035 665 1035 662 1035 652 1046 634 1059 505 1042 505 1096"/></Shape>
+            <String CONTENT="gliose de remplacement."
+                    HPOS="505.0"
+                    VPOS="1035.0"
+                    WIDTH="620.0"
+                    HEIGHT="109.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_c863e57c"
+                    TAGREFS="LT1050"
+                    BASELINE="494 1193 887 1192" 
+                    HPOS="490.0"
+                    VPOS="1120.0"
+                    WIDTH="395.0"
+                    HEIGHT="107.0">
+            <Shape><Polygon POINTS="492 1192 492 1220 791 1227 793 1227 883 1214 885 1190 883 1142 833 1120 830 1120 828 1120 826 1120 763 1140 739 1120 737 1120 734 1120 732 1120 730 1120 673 1137 632 1120 630 1120 628 1120 625 1120 623 1120 590 1140 525 1122 523 1122 521 1122 519 1122 516 1122 490 1137 492 1192"/></Shape>
+            <String CONTENT="Fer abondant."
+                    HPOS="490.0"
+                    VPOS="1120.0"
+                    WIDTH="395.0"
+                    HEIGHT="107.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_6f25cb60"
+                    TAGREFS="LT1050"
+                    BASELINE="203 1284 398 1284 484 1286 550 1287" 
+                    HPOS="200.0"
+                    VPOS="1218.0"
+                    WIDTH="349.0"
+                    HEIGHT="127.0">
+            <Shape><Polygon POINTS="202 1281 200 1342 320 1345 322 1345 324 1345 340 1338 355 1331 390 1336 449 1345 451 1345 547 1329 549 1286 545 1229 412 1233 383 1222 375 1220 372 1220 370 1220 355 1222 285 1233 202 1218 202 1281"/></Shape>
+            <String CONTENT="Pôle occipital"
+                    HPOS="200.0"
+                    VPOS="1218.0"
+                    WIDTH="349.0"
+                    HEIGHT="127.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_2b8a09f7"
+                    TAGREFS="LT1050"
+                    BASELINE="485 1373 1641 1374" 
+                    HPOS="481.0"
+                    VPOS="1303.0"
+                    WIDTH="1158.0"
+                    HEIGHT="116.0">
+            <Shape><Polygon POINTS="484 1371 481 1401 525 1419 658 1419 699 1397 765 1410 976 1397 1064 1412 1105 1395 1140 1406 1247 1395 1312 1417 1319 1417 1369 1395 1447 1410 1567 1395 1594 1414 1594 1417 1600 1417 1637 1414 1639 1373 1637 1323 1530 1303 1478 1321 1415 1303 1406 1303 1378 1321 1214 1308 1175 1321 1123 1303 1053 1323 946 1323 918 1303 837 1321 765 1310 758 1310 747 1318 728 1303 484 1314 484 1371"/></Shape>
+            <String CONTENT="Hyperplasie vasculaire du cortex, endartérite."
+                    HPOS="481.0"
+                    VPOS="1303.0"
+                    WIDTH="1158.0"
+                    HEIGHT="116.0"
+                    ></String>
+          </TextLine>
+          <TextLine ID="eSc_line_9ab6936f"
+                    TAGREFS="LT1050"
+                    BASELINE="485 1472 1101 1466 1940 1470" 
+                    HPOS="485.0"
+                    VPOS="1402.0"
+                    WIDTH="1455.0"
+                    HEIGHT="110.0">
+            <Shape><Polygon POINTS="1937 1424 1875 1424 1872 1422 1856 1414 1855 1414 1853 1414 1852 1414 1836 1421 1833 1424 1776 1424 1772 1421 1745 1405 1744 1405 1743 1405 1741 1405 1654 1419 1638 1421 1634 1418 1602 1402 1600 1402 1453 1402 1452 1402 1450 1402 1449 1402 1427 1415 1415 1422 1353 1414 1343 1414 1341 1414 1340 1414 1338 1414 1322 1424 1177 1424 1135 1421 1116 1411 1099 1402 1097 1402 1096 1402 1094 1402 1071 1409 1010 1403 1008 1403 1007 1403 994 1409 987 1412 947 1408 888 1402 886 1402 885 1402 869 1406 822 1422 792 1406 787 1403 786 1403 753 1402 751 1402 750 1402 742 1405 716 1418 667 1409 665 1409 664 1409 662 1409 641 1424 569 1424 529 1402 527 1402 485 1402 485 1472 485 1512 564 1512 564 1511 565 1511 667 1491 729 1494 766 1511 767 1511 769 1511 770 1511 771 1511 773 1511 795 1499 811 1510 812 1510 814 1510 815 1511 824 1511 1006 1511 1006 1510 1007 1510 1008 1510 1053 1491 1109 1491 1144 1510 1148 1511 1149 1511 1151 1512 1189 1512 1189 1511 1190 1511 1197 1508 1248 1491 1286 1491 1317 1508 1321 1511 1322 1511 1324 1511 1325 1512 1376 1512 1376 1511 1378 1511 1391 1508 1447 1494 1490 1504 1491 1504 1493 1504 1494 1504 1535 1492 1570 1492 1594 1507 1596 1508 1597 1508 1599 1508 1600 1508 1610 1507 1692 1492 1740 1499 1741 1499 1743 1499 1761 1491 1897 1491 1936 1505 1940 1470 1939 1425 1937 1424"/></Shape>
+            <String CONTENT="gliose très forte (périvasculaire aussi) en foyers limités."
+                    HPOS="485.0"
+                    VPOS="1402.0"
+                    WIDTH="1455.0"
+                    HEIGHT="110.0"
+                    ></String>
+          </TextLine>
+        </TextBlock>
+      </PrintSpace>
+    </Page>
+  </Layout>
+</alto>

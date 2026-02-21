@@ -4,7 +4,7 @@ A fine-tuning and generation pipeline for [ScrabbleGAN](https://github.com/arshj
 
 ## Overview
 
-This pipeline builds on [arshjot/ScrabbleGAN](https://github.com/arshjot/ScrabbleGAN). Several patches to the original repo are required — see [Patches to ScrabbleGAN](#patches-to-scrabblegan) below.
+This pipeline builds on [arshjot/ScrabbleGAN](https://github.com/arshjot/ScrabbleGAN).
 
 ```
 ALTO/image pairs
@@ -39,7 +39,7 @@ pip install torch torchvision pillow numpy tensorboard pandas kraken
 
 ## Pre-requisites
 
-### 1. Required files
+Weights can be found attache to the [va release](https://github.com/FoNDUE-HTR/ScrabbleGAN/releases/tag/v1).
 
 ```
 models/
@@ -51,28 +51,6 @@ data/
   page_001.xml                 # ALTO eScriptorium
   page_001.jpg                 # paired image
   ...
-```
-
-### 2. Patches to ScrabbleGAN
-
-The following files in `scrabblegan_arshjot/` require manual patches before use:
-
-**`utils/training_utils.py`** — tolerate checkpoints without valid optimizers, save `model_best.pth.tar` based on minimum `R_real`:
-```python
-# In save(), wrap optimizer load in try/except
-# Add: if r_real < self.best_r_real: save model_best.pth.tar
-```
-
-**`train.py`** (line ~252) — pass `r_real` to `model_checkpoint.save()`:
-```python
-model_checkpoint.save(r_real=float(np.mean(losses_R_real)))
-```
-
-**`models/ScrabbleGAN.py`** (lines ~75-110) — fix lexicon loading:
-```python
-# Replace empty list init with:
-pd.read_csv(cfg.lexicon_file, sep='\t')
-# Read column 'lemme' or fall back to first column
 ```
 
 ---
@@ -173,7 +151,7 @@ python scrabblegan_pipeline.py --step finetune \
     --weights ./models/RIMES_data_reshaped.pt \
     --charmap ./models/RIMES_char_map.pkl \
     --alto_dir ./data \
-    --output_dir ./synthetic_v2 \
+    --output_dir ./synthetic \
     --epochs 100
 ```
 
@@ -214,7 +192,7 @@ python scrabblegan_pipeline.py --step generate \
     --weights scrabblegan_arshjot/weights/model_best.pth.tar \
     --charmap ./models/RIMES_char_map.pkl \
     --alto_dir ./data \
-    --output_dir ./synthetic_v2_ft \
+    --output_dir ./synthetic \
     --n_images 5
 ```
 

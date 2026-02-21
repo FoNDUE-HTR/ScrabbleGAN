@@ -1,18 +1,30 @@
-# HTR Pipeline — Synthetic Data & Word-Level Alignment
+# ScrabbleGAN for French
 
-A pipeline for generating synthetic handwriting training data and enriching ALTO annotations with word-level bounding boxes, using ScrabbleGAN pre-trained on RIMES (French handwriting). Output is compatible with [Kraken](https://kraken.re), [Calamari](https://github.com/Calamari-OCR/calamari), and [eScriptorium](https://escriptorium.fr).
+A fine-tuning and generation pipeline for [ScrabbleGAN](https://github.com/arshjot/ScrabbleGAN) (arshjot's implementation) applied to historical French handwriting (HTR). Includes ALTO word-level alignment via Kraken, legacy weight conversion, and synthetic data generation compatible with eScriptorium and Kraken.
 
 ## Overview
+
+This pipeline builds on [arshjot/ScrabbleGAN](https://github.com/arshjot/ScrabbleGAN). Several patches to the original repo are required — see [Patches to ScrabbleGAN](#patches-to-scrabblegan) below.
 
 ```
 ALTO/image pairs
     │
-    ├── align_alto.py  →  word-level ALTO (positions from Kraken + GT text preserved)
+    ├── alto_wordlevel.py     →  word-level ALTO (Kraken positions + GT text preserved)
     │
-    └── htr_synth_v2.py
-            ├── finetune  →  fine-tune ScrabbleGAN on your word patches
-            └── generate  →  synthetic line images + ALTO v4
+    └── scrabblegan_pipeline.py
+            ├── finetune      →  fine-tune ScrabbleGAN on your word patches
+            └── generate      →  synthetic line images + ALTO v4
 ```
+
+---
+
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| `alto_wordlevel.py` | Converts eScriptorium line-level ALTO to word-level using Kraken alignment |
+| `scrabblegan_pipeline.py` | Fine-tunes ScrabbleGAN and generates synthetic handwriting images |
+| `convert_weights.py` | Converts legacy PyTorch weights (`.pkl` + blob folder) to modern `.pt` format |
 
 ---
 
@@ -27,18 +39,40 @@ pip install torch torchvision pillow numpy tensorboard pandas kraken
 
 ## Pre-requisites
 
-The following files must be present:
+### 1. Required files
 
 ```
 models/
   fondue_archimed_v4.mlmodel   # Kraken HTR model
   RIMES_char_map.pkl           # 93-character French alphabet mapping
-  data_final.pt                # ScrabbleGAN RIMES checkpoint (converted)
+  RIMES_data_reshaped.pt       # ScrabbleGAN RIMES checkpoint (converted)
 Lexique383.tsv                 # French lexicon
 data/
   page_001.xml                 # ALTO eScriptorium
   page_001.jpg                 # paired image
   ...
+```
+
+### 2. Patches to ScrabbleGAN
+
+The following files in `scrabblegan_arshjot/` require manual patches before use:
+
+**`utils/training_utils.py`** — tolerate checkpoints without valid optimizers, save `model_best.pth.tar` based on minimum `R_real`:
+```python
+# In save(), wrap optimizer load in try/except
+# Add: if r_real < self.best_r_real: save model_best.pth.tar
+```
+
+**`train.py`** (line ~252) — pass `r_real` to `model_checkpoint.save()`:
+```python
+model_checkpoint.save(r_real=float(np.mean(losses_R_real)))
+```
+
+**`models/ScrabbleGAN.py`** (lines ~75-110) — fix lexicon loading:
+```python
+# Replace empty list init with:
+pd.read_csv(cfg.lexicon_file, sep='\t')
+# Read column 'lemme' or fall back to first column
 ```
 
 ---
@@ -62,47 +96,47 @@ Supported image formats: `.jpg`, `.jpeg`, `.png`, `.tif`, `.tiff`
 
 Two ALTO variants are handled:
 
-- **eScriptorium line-level**: one `<String>` per `<TextLine>` with the full line text — produced by eScriptorium by default
-- **Word-level**: one `<String>` per word with individual bounding boxes — needed for ScrabbleGAN fine-tuning and richer training data
+- **eScriptorium line-level**: one `<String>` per `<TextLine>` with the full line — produced by eScriptorium by default
+- **Word-level**: one `<String>` per word with individual bounding boxes — needed for fine-tuning and richer training data
 
-`align_alto.py` converts line-level ALTO to word-level. `htr_synth_v2.py` works best with word-level input.
+Use `alto_wordlevel.py` to convert line-level to word-level before fine-tuning.
 
 ---
 
-## Script 1 — align_alto.py
+## Script 1 — alto_wordlevel.py
 
 Converts eScriptorium line-level ALTO to word-level ALTO by:
 
 1. Running Kraken recognition on each line to get per-character positions (cuts)
-2. Aligning the OCR output with the GT text via Levenshtein to recover correct positions even when OCR makes mistakes
+2. Aligning OCR output with GT text via Levenshtein to recover correct positions even when OCR makes mistakes
 3. Reconstructing word bounding boxes from the aligned character cuts
 4. Writing a new ALTO v4 with `<String>` per word and `<Glyph>` per character
 
-Lines already at word-level (multiple `<String>` per `<TextLine>`) are automatically skipped.
+Lines already at word-level (multiple `<String>` per `<TextLine>`) are automatically skipped. The original `fileName` from the ALTO metadata is preserved in the output.
 
 ### Usage
 
 ```bash
 # Single file — overwrites the original
-python align_alto.py \
+python alto_wordlevel.py \
     --xml data/page.xml \
     --img data/page.jpg \
     --model models/fondue_archimed_v4.mlmodel
 
 # Single file — separate output
-python align_alto.py \
+python alto_wordlevel.py \
     --xml data/page.xml \
     --img data/page.jpg \
     --model models/fondue_archimed_v4.mlmodel \
     --output data/page_out.xml
 
-# Entire folder — overwrites originals
-python align_alto.py \
+# Entire folder — overwrites originals (creates a timestamped zip backup first)
+python alto_wordlevel.py \
     --xml_dir data/ \
     --model models/fondue_archimed_v4.mlmodel
 
 # Entire folder — separate output folder
-python align_alto.py \
+python alto_wordlevel.py \
     --xml_dir data/ \
     --output_dir data_wordlevel/ \
     --model models/fondue_archimed_v4.mlmodel
@@ -123,19 +157,20 @@ python align_alto.py \
 
 ### Notes
 
+- When overwriting originals in batch mode, a timestamped zip backup is created automatically (`data_backup_YYYYMMDD_HHMMSS.zip`)
 - Errors (invalid XML, missing image, failed line) are always reported regardless of `--verbose`
 - Lines where OCR error rate is high will still be processed but word positions may be approximate — use `--verbose` to inspect
-- The `fileName` in the output ALTO is taken from the original ALTO metadata, not from the XML filename
+- Works best with a Kraken model trained on the same script type
 
 ---
 
-## Script 2 — htr_synth_v2.py
+## Script 2 — scrabblegan_pipeline.py
 
 ### Step 1 — Fine-tuning
 
 ```bash
-python htr_synth_v2.py --step finetune \
-    --weights ./models/data_final.pt \
+python scrabblegan_pipeline.py --step finetune \
+    --weights ./models/RIMES_data_reshaped.pt \
     --charmap ./models/RIMES_char_map.pkl \
     --alto_dir ./data \
     --output_dir ./synthetic_v2 \
@@ -154,12 +189,12 @@ This step:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--weights` | required | Path to `data_final.pt` (converted RIMES checkpoint) |
+| `--weights` | required | Path to converted RIMES checkpoint (`.pt`) |
 | `--charmap` | required | Path to `RIMES_char_map.pkl` |
 | `--alto_dir` | `./data` | Folder containing ALTO/image pairs |
 | `--output_dir` | `./synthetic_v2` | Output folder |
 | `--epochs` | `10` | Number of training epochs (100 recommended) |
-| `--save_patches` | off | Save extracted word patches as image+txt pairs in the given folder (useful to verify bounding boxes) |
+| `--save_patches` | off | Save extracted word patches as image+txt pairs in the given folder |
 
 **Key metrics:**
 
@@ -175,7 +210,7 @@ This step:
 ### Step 2 — Generate synthetic images
 
 ```bash
-python htr_synth_v2.py --step generate \
+python scrabblegan_pipeline.py --step generate \
     --weights scrabblegan_arshjot/weights/model_best.pth.tar \
     --charmap ./models/RIMES_char_map.pkl \
     --alto_dir ./data \
@@ -203,22 +238,48 @@ This step:
 
 ---
 
+## Script 3 — convert_weights.py
+
+Converts legacy PyTorch ScrabbleGAN weights to modern `.pt` format.
+
+```bash
+# Convert
+python convert_weights.py \
+    --pkl ./data.pkl \
+    --data_dir ./data \
+    --output ./models/RIMES_data_reshaped.pt
+
+# Verify
+python convert_weights.py --verify ./models/RIMES_data_reshaped.pt
+```
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--pkl` | `./data.pkl` | Legacy pickle file |
+| `--data_dir` | `./data` | Folder containing tensor blobs |
+| `--output` | `./data_final.pt` | Output `.pt` file |
+| `--verify` | — | Verify an existing `.pt` file |
+
+---
+
 ## Output Structure
 
 ```
 synthetic_v2_ft/
   generated/
-    00001_Histologie_000.png
-    00001_Histologie_000.txt   # plain text transcription
-    00001_Histologie_000.xml   # ALTO v4 word-level
-    00001_Histologie_001.png
+    00001_Cellules_nerveuses_000.png
+    00001_Cellules_nerveuses_000.txt   # plain text transcription
+    00001_Cellules_nerveuses_000.xml   # ALTO v4 word-level
+    00001_Cellules_nerveuses_001.png
     ...
-  manifest_generated.csv       # image_path \t text
+  manifest_generated.csv               # image_path \t text
 
 scrabblegan_arshjot/weights/
   model_checkpoint_epoch_1.pth.tar
   ...
-  model_best.pth.tar           # best checkpoint (lowest R_real)
+  model_best.pth.tar                   # best checkpoint (lowest R_real)
 ```
 
 ---
@@ -244,6 +305,13 @@ ketos train -f alto -d ./manifest_all.csv
 - **Batch size**: default is 8. With word-level ALTO you get ~4-5× more patches than line-level
 - **Epochs**: 100 epochs ≈ 65 minutes on CPU (Apple Silicon). `R_real` typically converges around epoch 50-70
 - **Best model**: `model_best.pth.tar` is automatically saved whenever `R_real` improves
-- **Character filtering**: characters outside the 93-character RIMES alphabet are removed (not discarded)
-- **One-time patches to ScrabbleGAN**: `training_utils.py` and `ScrabbleGAN.py` require manual patches (optimizer loading tolerance, lexicon loading) — see commit history
-- **align_alto.py**: works best with a model trained on the same script type. A high OCR error rate on a line means word positions may be approximate for that line
+- **Character filtering**: characters outside the 93-character RIMES alphabet are removed rather than discarded
+- **alto_wordlevel.py**: works best with a model trained on the same script type; a high OCR error rate means word positions may be approximate for that line
+
+## License
+
+This pipeline is released under the Apache 2.0 License. It builds on [arshjot/ScrabbleGAN](https://github.com/arshjot/ScrabbleGAN), itself based on [ScrabbleGAN](https://github.com/amzn/style-based-gan-pytorch) by Amazon. Please refer to their respective licenses.
+
+## Contact
+
+[Simon Gabay](https://www.unige.ch/lettres/humanites-numeriques/equipe/collaborateurs/simon-gabay)

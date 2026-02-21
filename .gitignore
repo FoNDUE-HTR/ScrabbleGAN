@@ -1,2 +1,4 @@
 *.DS_Store
 patches_debug/
+models/IAM_data_reshaped.pt
+models/RIMES_data_reshaped.pt

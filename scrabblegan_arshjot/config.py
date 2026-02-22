@@ -9,16 +9,16 @@ class Config:
     char_w = 16
     partition = 'tr'
     batch_size = 8
-    num_epochs = 100
-    epochs_lr_decay = 100
+    num_epochs = 50
+    epochs_lr_decay = 50
     resume_training = True
     start_epoch = 0
     train_gen_steps = 4
     grad_alpha = 1
     grad_balance = True
-    data_file = r'/Users/gabays/Desktop/GAN/synthetic_v2/finetuned/custom_data.pkl'
+    data_file = r'/Users/gabays/github/ARCHIMED/data_aug/synthetic_v2/finetuned/custom_data.pkl'
     lexicon_file_name = 'Lexique383.tsv'
-    lexicon_file = r'/Users/gabays/Desktop/GAN/scrabblegan_arshjot/data/Lexicon/Lexique383.tsv'
+    lexicon_file = r'/Users/gabays/github/ARCHIMED/data_aug/scrabblegan_arshjot/data/Lexicon/Lexique383.tsv'
     lmdb_output = './data/custom_lmdb'
     architecture = 'ScrabbleGAN'
     r_ks = [3, 3, 3, 3, 3, 3, 2]
@@ -38,5 +38,14 @@ class Config:
     r_loss_fn = 'CTCLoss'
     z_dim = 128
     num_chars = 93
-    weight_dir = r'/Users/gabays/Desktop/GAN/synthetic_v2/finetuned'
-    device = _torch.device('cuda' if _torch.cuda.is_available() else 'cpu')
+    weight_dir = r'/Users/gabays/github/ARCHIMED/data_aug/synthetic_v2/finetuned'
+    # Détection du device disponible
+    if _torch.cuda.is_available():
+        device = _torch.device('cuda')
+        print('[32m[GPU] CUDA détecté et utilisé[0m')
+    elif _torch.backends.mps.is_available():
+        device = _torch.device('mps')
+        print('[32m[GPU] MPS (Apple Silicon) détecté et utilisé[0m')
+    else:
+        device = _torch.device('cpu')
+        print('[31m[CPU] Aucun GPU détecté - entraînement sur CPU[0m')

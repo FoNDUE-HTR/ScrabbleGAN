@@ -13,4 +13,6 @@ __pycache__/
 scrabblegan_arshjot/output/output.log
 scrabblegan_arshjot/weights/*tar
 data_wordlevel/
-
+scrabblegan_arshjot/logs/
+synthetic/
+synthetic_v2/

@@ -12,3 +12,5 @@ __pycache__/
 *.pyd
 scrabblegan_arshjot/output/output.log
 scrabblegan_arshjot/weights/*tar
+data_wordlevel/
+

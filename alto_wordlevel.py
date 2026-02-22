@@ -1,6 +1,6 @@
 """
-align_alto.py - Alignement positions Kraken + texte GT pour ALTO word-level
-=============================================================================
+alto_wordlevel.py - Alignement positions Kraken + texte GT pour ALTO word-level
+================================================================================
 
 Prend un ALTO eScriptorium (texte GT, pas de positions mot) et produit un
 ALTO word-level avec :
@@ -8,31 +8,34 @@ ALTO word-level avec :
   - le texte GT conservé (pas le texte OCR)
 
 Corrections :
-  - Le fichier de sortie garde le même nom que l'original (écrasement par défaut)
-  - Les fichiers déjà word-level (plusieurs <String> par <TextLine>) sont skippés
+  - Couleurs terminal : vert (OK), rouge (erreur), orange (aucune ligne)
+  - Les lignes déjà word-level sont retraitées (pas skippées) pour intégrer
+    les corrections manuelles de l'annotateur
+  - Gestion des NaN dans HPOS/VPOS/WIDTH/HEIGHT
   - Les attributs numériques sont toujours des entiers (pas de floats)
   - Les caractères spéciaux XML dans CONTENT sont échappés (&quot; etc.)
   - Les lignes sans baseline/polygon sont skippées proprement
 
 Usage :
     # Fichier unique (écrase l'original)
-    python align_alto.py --xml data/page.xml --img data/page.jpg \\
+    python alto_wordlevel.py --xml data/page.xml --img data/page.jpg \\
         --model models/fondue_archimed_v4.mlmodel
 
     # Fichier unique avec sortie séparée
-    python align_alto.py --xml data/page.xml --img data/page.jpg \\
+    python alto_wordlevel.py --xml data/page.xml --img data/page.jpg \\
         --model models/fondue_archimed_v4.mlmodel --output data/page_out.xml
 
     # Dossier entier (écrase les originaux par défaut)
-    python align_alto.py --xml_dir data/ \\
+    python alto_wordlevel.py --xml_dir data/ \\
         --model models/fondue_archimed_v4.mlmodel
 
     # Dossier entier avec sortie séparée
-    python align_alto.py --xml_dir data/ --output_dir data_wordlevel/ \\
+    python alto_wordlevel.py --xml_dir data/ --output_dir data_wordlevel/ \\
         --model models/fondue_archimed_v4.mlmodel
 """
 
 import argparse
+import math
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Optional
@@ -42,6 +45,20 @@ from PIL import Image
 from kraken import rpred
 from kraken.lib import models
 from kraken.containers import Segmentation, BaselineLine
+
+
+# =============================================================================
+# COULEURS TERMINAL
+# =============================================================================
+
+GREEN  = "\033[32m"
+RED    = "\033[31m"
+ORANGE = "\033[33m"
+RESET  = "\033[0m"
+
+def ok(msg):    return f"{GREEN}{msg}{RESET}"
+def err(msg):   return f"{RED}{msg}{RESET}"
+def warn(msg):  return f"{ORANGE}{msg}{RESET}"
 
 
 # =============================================================================
@@ -133,16 +150,34 @@ def parse_points(s: str) -> list:
     return [[pts[i], pts[i+1]] for i in range(0, len(pts)-1, 2)]
 
 
-def is_already_wordlevel(tl, ns: str) -> bool:
-    """True si la TextLine contient déjà plusieurs <String> (déjà word-level)."""
-    return len(list(tl.findall(f"{ns}String"))) > 1
+def safe_int(val, default=0) -> int:
+    """Convertit en int en gérant NaN et None."""
+    try:
+        f = float(val)
+        if math.isnan(f) or math.isinf(f):
+            return default
+        return int(f)
+    except (TypeError, ValueError):
+        return default
+
+
+def get_gt_text(tl, ns: str) -> str:
+    """
+    Récupère le texte GT d'une TextLine, qu'elle soit line-level ou word-level.
+    Pour word-level : concatène tous les <String> avec un espace.
+    """
+    strings = list(tl.findall(f"{ns}String"))
+    if not strings:
+        return ""
+    return " ".join(s.get("CONTENT", "").strip() for s in strings if s.get("CONTENT", "").strip())
 
 
 def parse_alto(xml_path: str):
     """
     Lit un ALTO eScriptorium.
-    Skippe les lignes déjà word-level et celles sans baseline/polygon.
-    Retourne (lines, page_w, page_h, img_name, skipped_wordlevel)
+    Traite toutes les lignes (y compris celles déjà word-level).
+    Skippe seulement les lignes sans baseline ou polygon.
+    Retourne (lines, page_w, page_h, img_name)
     """
     tree = ET.parse(xml_path)
     root = tree.getroot()
@@ -150,22 +185,15 @@ def parse_alto(xml_path: str):
     ns = f"{{{ns_raw}}}" if ns_raw else ""
 
     page = root.find(f".//{ns}Page")
-    page_w = int(float(page.get("WIDTH", 0)))
-    page_h = int(float(page.get("HEIGHT", 0)))
+    page_w = safe_int(page.get("WIDTH", 0))
+    page_h = safe_int(page.get("HEIGHT", 0))
     img_name = root.findtext(f".//{ns}fileName", "")
 
     lines = []
-    skipped_wordlevel = 0
+    skipped_no_baseline = 0
 
     for tl in root.iter(f"{ns}TextLine"):
-        if is_already_wordlevel(tl, ns):
-            skipped_wordlevel += 1
-            continue
-
-        s = tl.find(f"{ns}String")
-        if s is None:
-            continue
-        gt_text = s.get("CONTENT", "").strip()
+        gt_text = get_gt_text(tl, ns)
         if not gt_text:
             continue
 
@@ -175,21 +203,22 @@ def parse_alto(xml_path: str):
         poly_str = poly_el.get("POINTS", "") if poly_el is not None else ""
 
         if not baseline_str or not poly_str:
+            skipped_no_baseline += 1
             continue
 
         lines.append({
-            'id': tl.get("ID", f"line_{len(lines)}"),
+            'id':       tl.get("ID", f"line_{len(lines)}"),
             'baseline': parse_points(baseline_str),
             'boundary': parse_points(poly_str),
-            'gt_text': gt_text,
-            'tags': tl.get("TAGREFS", ""),
-            'hpos':   int(float(tl.get("HPOS",   0))),
-            'vpos':   int(float(tl.get("VPOS",   0))),
-            'width':  int(float(tl.get("WIDTH",  0))),
-            'height': int(float(tl.get("HEIGHT", 0))),
+            'gt_text':  gt_text,
+            'tags':     tl.get("TAGREFS", ""),
+            'hpos':     safe_int(tl.get("HPOS",   0)),
+            'vpos':     safe_int(tl.get("VPOS",   0)),
+            'width':    safe_int(tl.get("WIDTH",  0)),
+            'height':   safe_int(tl.get("HEIGHT", 0)),
         })
 
-    return lines, page_w, page_h, img_name, skipped_wordlevel
+    return lines, page_w, page_h, img_name, skipped_no_baseline
 
 
 # =============================================================================
@@ -221,7 +250,8 @@ def recognize_lines(img: Image.Image, lines: list, net) -> list:
                     'cuts': record.cuts,
                 })
         except Exception as e:
-            print(f"\n  [!] Echec ligne '{line['gt_text'][:30]}' : {e}")
+            gt_preview = line['gt_text'][:30]
+            print(f"\n  {err(f'[!] Echec ligne {gt_preview!r} : {e}')}")
             results.append({**line, 'ocr_text': None, 'cuts': []})
     return results
 
@@ -279,10 +309,10 @@ def build_alto_xml(lines_data: list, page_w: int, page_h: int,
 
     lines_xml = []
     for line in lines_data:
-        gt_text    = line['gt_text']
+        gt_text     = line['gt_text']
         word_bboxes = line.get('word_bboxes', [])
-        bl_str     = pts_to_str(line['baseline'])
-        poly_str   = pts_to_str(line['boundary'])
+        bl_str      = pts_to_str(line['baseline'])
+        poly_str    = pts_to_str(line['boundary'])
 
         if word_bboxes:
             strings_xml = []
@@ -379,14 +409,14 @@ def process_file(xml_path: str, img_path: str, model_path: str,
     try:
         lines, page_w, page_h, img_name, skipped = parse_alto(xml_path)
     except ET.ParseError as e:
-        print(f"\n  [!] XML invalide : {e}")
+        print(f"\n  {err(f'[!] XML invalide : {e}')}")
         return
 
     if skipped:
-        print(f" ({skipped} lignes déjà word-level skippées)", end='')
+        print(f" {warn(f'({skipped} lignes sans baseline skippées)')}", end='')
 
     if not lines:
-        print(f"\n  [!] Aucune ligne à traiter")
+        print(f"\n  {warn('[!] Aucune ligne à traiter')}")
         return
 
     img = Image.open(img_path)
@@ -394,6 +424,7 @@ def process_file(xml_path: str, img_path: str, model_path: str,
 
     recognized = recognize_lines(img, lines, net)
 
+    n_failed = 0
     for rec in recognized:
         if verbose:
             print(f"\n    GT  : '{rec['gt_text']}'")
@@ -401,6 +432,8 @@ def process_file(xml_path: str, img_path: str, model_path: str,
         rec['word_bboxes'] = build_word_bboxes(
             rec['gt_text'], rec['ocr_text'], rec['cuts']
         )
+        if not rec['word_bboxes']:
+            n_failed += 1
         if verbose and rec['word_bboxes']:
             for wb in rec['word_bboxes']:
                 print(f"      '{wb['word']}' -> ({wb['x1']},{wb['y1']},{wb['x2']},{wb['y2']})")
@@ -408,7 +441,15 @@ def process_file(xml_path: str, img_path: str, model_path: str,
     alto_xml = build_alto_xml(recognized, page_w, page_h, img_name)
     Path(output_path).write_text(alto_xml, encoding='utf-8')
     n_words = sum(len(r['word_bboxes']) for r in recognized)
-    print(f"\n  -> {len(recognized)} lignes, {n_words} mots -> {Path(output_path).name}")
+
+    if n_failed == 0:
+        status = ok(f"-> {len(recognized)} lignes, {n_words} mots")
+    elif n_failed < len(recognized):
+        status = warn(f"-> {len(recognized)} lignes, {n_words} mots ({n_failed} sans positions)")
+    else:
+        status = err(f"-> {len(recognized)} lignes, aucune position générée")
+
+    print(f"\n  {status} -> {Path(output_path).name}")
 
 
 def main():
@@ -418,16 +459,16 @@ def main():
         epilog="""
 Exemples :
   # Fichier unique (écrase l'original)
-  python align_alto.py --xml data/page.xml --img data/page.jpg --model models/model.mlmodel
+  python alto_wordlevel.py --xml data/page.xml --img data/page.jpg --model models/model.mlmodel
 
   # Fichier unique avec sortie séparée
-  python align_alto.py --xml data/page.xml --img data/page.jpg --model models/model.mlmodel --output out.xml
+  python alto_wordlevel.py --xml data/page.xml --img data/page.jpg --model models/model.mlmodel --output out.xml
 
   # Dossier entier (écrase les originaux)
-  python align_alto.py --xml_dir data/ --model models/model.mlmodel
+  python alto_wordlevel.py --xml_dir data/ --model models/model.mlmodel
 
   # Dossier entier avec sortie séparée
-  python align_alto.py --xml_dir data/ --output_dir data_wl/ --model models/model.mlmodel
+  python alto_wordlevel.py --xml_dir data/ --output_dir data_wl/ --model models/model.mlmodel
         """
     )
     parser.add_argument('--xml',        help='Fichier ALTO en entrée (mode fichier unique)')
@@ -452,7 +493,7 @@ Exemples :
             out_dir.mkdir(parents=True, exist_ok=True)
 
         # Backup des XML originaux avant modification
-        if not out_dir:  # seulement si on écrase les originaux
+        if not out_dir:
             import zipfile, datetime
             stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_path = xml_dir.parent / f"{xml_dir.name}_backup_{stamp}.zip"
@@ -472,7 +513,7 @@ Exemples :
                     img_path = p
                     break
             if img_path is None:
-                print(f"  [!] Image non trouvée pour {xml_path.name}")
+                print(f"  {err(f'[!] Image non trouvée pour {xml_path.name}')}")
                 continue
 
             out_path = (out_dir / xml_path.name) if out_dir else xml_path
@@ -480,7 +521,7 @@ Exemples :
                 process_file(str(xml_path), str(img_path), args.model,
                              str(out_path), args.verbose)
             except Exception as e:
-                print(f"  [!] Erreur sur {xml_path.name} : {e}")
+                print(f"  {err(f'[!] Erreur sur {xml_path.name} : {e}')}")
     else:
         parser.print_help()
 

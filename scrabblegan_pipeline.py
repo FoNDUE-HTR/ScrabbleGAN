@@ -264,7 +264,7 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
         """Genere un fichier ALTO v4 pour une image de ligne synthetique."""
         line_id   = f"eSc_line_{line_idx:06d}"
         block_id  = f"eSc_block_{line_idx:06d}"
-        baseline  = f"0 {img_h // 2} {img_w} {img_h // 2}"
+        baseline  = f"0 {int(img_h * 0.80)} {img_w} {int(img_h * 0.80)}"
         poly_line = f"0 0 0 {img_h} {img_w} {img_h} {img_w} 0"
 
         strings_xml = []

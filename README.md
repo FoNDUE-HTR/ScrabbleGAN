@@ -34,7 +34,7 @@ ALTO/image pairs
 - macOS or Linux (CPU or MPS/CUDA)
 
 ```bash
-pip install torch torchvision pillow numpy tensorboard pandas kraken
+pip install -r requirements.txt
 ```
 
 ## Pre-requisites

@@ -48,7 +48,8 @@ def parse_alto(alto_path: str) -> list[dict]:
     ns = root.tag.split("}")[0] + "}" if root.tag.startswith("{") else ""
     lines = []
     for tl in root.iter(f"{ns}TextLine"):
-        text = " ".join(s.get("CONTENT", "") for s in tl.iter(f"{ns}String")).strip()
+        from html import unescape
+        text = unescape(" ".join(s.get("CONTENT", "") for s in tl.iter(f"{ns}String")).strip())
         if text:
             lines.append({"id": tl.get("ID", ""), "text": text})
     return lines
@@ -123,10 +124,16 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
     config_txt  = config_path.read_text(encoding="utf-8")
     lex_abs     = str((SCRABBLEGAN_DIR / "data" / "Lexicon" / "Lexique383.tsv").resolve())
     import re as _re
+    num_chars_val = len(char_map) if isinstance(char_map, dict) else len(set(char_map))
     config_patched = _re.sub(
         r"lexicon_file\s*=.*",
         f"lexicon_file = r'{lex_abs}'",
         config_txt
+    )
+    config_patched = _re.sub(
+        r"num_chars\s*=.*",
+        f"num_chars = {num_chars_val}",
+        config_patched
     )
     config_path.write_text(config_patched, encoding="utf-8")
 
@@ -139,6 +146,7 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
                 del _sys.modules[mod]
         from generate_images import ImgGenerator
         from config import Config
+        Config.num_chars = len(char_map) if isinstance(char_map, dict) else len(set(char_map))
         generator = ImgGenerator(
             checkpt_path=str(Path(weights).resolve()),
             config=Config,
@@ -157,17 +165,19 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
     # On echantillonne depuis les vraies images pour matcher la couleur
     bg_color = None
     _pairs = find_pairs(alto_dir)
-    for _, img_path in _pairs[:3]:
+    _samples = []
+    for _, img_path in _pairs[:10]:
         try:
             sample = PILImage.open(img_path).convert("RGB")
             arr_s  = np.array(sample)
-            # Prendre le 95e percentile (fond clair)
-            bg_color = tuple(int(np.percentile(arr_s[:,:,c], 95)) for c in range(3))
-            break
+            _samples.append(tuple(int(np.percentile(arr_s[:,:,c], 95)) for c in range(3)))
         except Exception:
             pass
+    if _samples:
+        bg_color = tuple(int(np.mean([s[c] for s in _samples])) for c in range(3))
     if bg_color is None:
         bg_color = (220, 210, 185)  # beige par defaut
+    print(f"  bg_color calculé sur {len(_samples)} images : {bg_color}")
 
     def normalize_img(img_arr, bg=bg_color):
         """Normalise vers [0,255] et applique la couleur de fond des originaux."""
@@ -472,7 +482,8 @@ def step_finetune(weights: str, charmap: str, alto_dir: str, output_dir: str, ep
         # Extraction au niveau MOT (<String>) et non ligne (<TextLine>)
         # ScrabbleGAN est concu pour des mots isoles, pas des lignes entieres
         for s in root.iter(f"{ns}String"):
-            text = s.get("CONTENT", "").strip()
+            from html import unescape
+            text = unescape(s.get("CONTENT", "").strip())
             if not text:
                 continue
             # Nettoyer le mot : garder seulement les caracteres dans l'alphabet
@@ -584,7 +595,7 @@ class Config:
     d_loss_fn = 'HingeLoss'
     r_loss_fn = 'CTCLoss'
     z_dim = 128
-    num_chars = 93
+    num_chars = {len(char2idx)}
     weight_dir = r'{ckpt_dir_abs}'
     # Détection du device disponible
     if _torch.cuda.is_available():
@@ -603,10 +614,13 @@ class Config:
     # ModelCheckpoint cherche dans ./weights/ relatif au cwd (scrabblegan_arshjot/)
     weights_dir = SCRABBLEGAN_DIR.resolve() / "weights"
     weights_dir.mkdir(exist_ok=True)
+    # Nettoyer les anciens checkpoints pour éviter les conflits d'architecture
+    for old_ckpt in weights_dir.glob("*.pth.tar"):
+        old_ckpt.unlink()
+        print(f"  -> Ancien checkpoint supprime : {old_ckpt.name}")
     ckpt_in_weightdir = weights_dir / "model_checkpoint_epoch_0.pth.tar"
-    if not ckpt_in_weightdir.exists():
-        shutil.copy(weights, ckpt_in_weightdir)
-        print(f"  -> Checkpoint copie -> {ckpt_in_weightdir}")
+    shutil.copy(weights, ckpt_in_weightdir)
+    print(f"  -> Checkpoint copie -> {ckpt_in_weightdir}")
 
     # Lancement de train.py depuis son repertoire
     print(f"[4/4] Lancement de train.py ({epochs} epochs)...")

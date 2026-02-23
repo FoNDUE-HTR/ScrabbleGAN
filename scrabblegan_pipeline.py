@@ -122,10 +122,16 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
     config_txt  = config_path.read_text(encoding="utf-8")
     lex_abs     = str((SCRABBLEGAN_DIR / "data" / "Lexicon" / "Lexique383.tsv").resolve())
     import re as _re
+    num_chars_val = len(char_map) if isinstance(char_map, dict) else len(set(char_map))
     config_patched = _re.sub(
         r"lexicon_file\s*=.*",
         f"lexicon_file = r'{lex_abs}'",
         config_txt
+    )
+    config_patched = _re.sub(
+        r"num_chars\s*=.*",
+        f"num_chars = {num_chars_val}",
+        config_patched
     )
     config_path.write_text(config_patched, encoding="utf-8")
 
@@ -605,10 +611,13 @@ class Config:
     # ModelCheckpoint cherche dans ./weights/ relatif au cwd (scrabblegan_arshjot/)
     weights_dir = SCRABBLEGAN_DIR.resolve() / "weights"
     weights_dir.mkdir(exist_ok=True)
+    # Nettoyer les anciens checkpoints pour éviter les conflits d'architecture
+    for old_ckpt in weights_dir.glob("*.pth.tar"):
+        old_ckpt.unlink()
+        print(f"  -> Ancien checkpoint supprime : {old_ckpt.name}")
     ckpt_in_weightdir = weights_dir / "model_checkpoint_epoch_0.pth.tar"
-    if not ckpt_in_weightdir.exists():
-        shutil.copy(weights, ckpt_in_weightdir)
-        print(f"  -> Checkpoint copie -> {ckpt_in_weightdir}")
+    shutil.copy(weights, ckpt_in_weightdir)
+    print(f"  -> Checkpoint copie -> {ckpt_in_weightdir}")
 
     # Lancement de train.py depuis son repertoire
     print(f"[4/4] Lancement de train.py ({epochs} epochs)...")

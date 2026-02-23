@@ -11,6 +11,8 @@ ALTO/image pairs
     │
     ├── alto_wordlevel.py     →  word-level ALTO (Kraken positions + GT text preserved)
     │
+    ├── normalize_alto.py     →  normalize ALTO text to char_map (diacritics + filtering)
+    │
     └── scrabblegan_pipeline.py
             ├── finetune      →  fine-tune ScrabbleGAN on your word patches
             └── generate      →  synthetic line images + ALTO v4
@@ -23,6 +25,7 @@ ALTO/image pairs
 | Script | Description |
 |--------|-------------|
 | `alto_wordlevel.py` | Converts eScriptorium line-level ALTO to word-level using Kraken alignment |
+| `normalize_alto.py` | Normalizes ALTO text to a char_map (diacritics, unsupported characters) |
 | `scrabblegan_pipeline.py` | Fine-tunes ScrabbleGAN and generates synthetic handwriting images |
 | `convert_weights.py` | Converts legacy PyTorch weights (`.pkl` + blob folder) to modern `.pt` format |
 
@@ -39,7 +42,7 @@ pip install -r requirements.txt
 
 ## Pre-requisites
 
-Weights can be found attache to the [va release](https://github.com/FoNDUE-HTR/ScrabbleGAN/releases/tag/v1).
+Weights can be found attached to the [v1 release](https://github.com/FoNDUE-HTR/ScrabbleGAN/releases/tag/v1).
 
 ```
 models/
@@ -90,7 +93,7 @@ Converts eScriptorium line-level ALTO to word-level ALTO by:
 3. Reconstructing word bounding boxes from the aligned character cuts
 4. Writing a new ALTO v4 with `<String>` per word and `<Glyph>` per character
 
-Lines already at word-level (multiple `<String>` per `<TextLine>`) are automatically skipped. The original `fileName` from the ALTO metadata is preserved in the output.
+Lines already at word-level are automatically reprocessed to integrate annotator corrections. The original `fileName` from the ALTO metadata is preserved in the output.
 
 ### Usage
 
@@ -142,7 +145,54 @@ python alto_wordlevel.py \
 
 ---
 
-## Script 2 — scrabblegan_pipeline.py
+## Script 2 — normalize_alto.py
+
+Normalizes the text content of ALTO files to match a given char_map, for compatibility with ScrabbleGAN (RIMES or IAM). For each character in each `CONTENT` attribute:
+
+1. If the character is in the char_map → kept as-is (accented characters are preserved when present in the char_map)
+2. If not, a diacritic normalization is attempted (é→e) — kept if the result is in the char_map
+3. Otherwise removed
+
+XML entities (`&amp;`, `&quot;`, etc.) are decoded before processing and re-encoded after. Unicode is normalized to NFC before comparison.
+
+Run this step **after** `alto_wordlevel.py` and **before** `scrabblegan_pipeline.py --step finetune`, so that image content and text labels are in sync.
+
+### Usage
+
+```bash
+# RIMES char_map — preserves French accents
+python normalize_alto.py \
+    --xml_dir data_wordlevel/ \
+    --charmap models/RIMES_char_map.pkl \
+    --output_dir data_normalized/ \
+    --report
+
+# IAM char_map — strips all accents (é→e, à→a, no French characters)
+python normalize_alto.py \
+    --xml_dir data_wordlevel/ \
+    --charmap models/IAM_char_map.pkl \
+    --output_dir data_normalized_iam/ \
+    --report
+```
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--xml_dir` | required | Folder containing ALTO files |
+| `--charmap` | required | Char_map pickle file (RIMES, IAM, or any ScrabbleGAN `.pkl`) |
+| `--output_dir` | overwrites originals | Output folder |
+| `--report` | off | Print before/after changes per file |
+
+### Notes
+
+- With RIMES: accented characters (é, à, ç…) are preserved; only truly unsupported characters (`:`, `;`, `.`, `,`…) are removed
+- With IAM: all accents are stripped (é→e, à→a); the 74-character IAM alphabet has no French-specific characters
+- Use `--report` first to inspect changes before committing to an output folder
+
+---
+
+## Script 3 — scrabblegan_pipeline.py
 
 ### Step 1 — Fine-tuning
 
@@ -150,7 +200,7 @@ python alto_wordlevel.py \
 python scrabblegan_pipeline.py --step finetune \
     --weights ./models/RIMES_data_reshaped.pt \
     --charmap ./models/RIMES_char_map.pkl \
-    --alto_dir ./data \
+    --alto_dir ./data_normalized/ \
     --output_dir ./synthetic \
     --epochs 100
 ```
@@ -191,7 +241,7 @@ This step:
 python scrabblegan_pipeline.py --step generate \
     --weights scrabblegan_arshjot/weights/model_best.pth.tar \
     --charmap ./models/RIMES_char_map.pkl \
-    --alto_dir ./data \
+    --alto_dir ./data_normalized/ \
     --output_dir ./synthetic \
     --n_images 5
 ```
@@ -216,7 +266,7 @@ This step:
 
 ---
 
-## Script 3 — convert_weights.py
+## Script 4 — convert_weights.py
 
 Converts legacy PyTorch ScrabbleGAN weights to modern `.pt` format.
 
@@ -279,11 +329,11 @@ ketos train -f alto -d ./manifest_all.csv
 
 ## Notes
 
-- **macOS MPS**: `pin_memory` warning is harmless
+- **macOS MPS**: `pin_memory` warning is harmless; `ctc_loss` falls back to CPU automatically via `PYTORCH_ENABLE_MPS_FALLBACK=1`
 - **Batch size**: default is 8. With word-level ALTO you get ~4-5× more patches than line-level
 - **Epochs**: 100 epochs ≈ 65 minutes on CPU (Apple Silicon). `R_real` typically converges around epoch 50-70
 - **Best model**: `model_best.pth.tar` is automatically saved whenever `R_real` improves
-- **Character filtering**: characters outside the 93-character RIMES alphabet are removed rather than discarded
+- **Character filtering**: use `normalize_alto.py` before fine-tuning to ensure text labels and image content are in sync
 - **alto_wordlevel.py**: works best with a model trained on the same script type; a high OCR error rate means word positions may be approximate for that line
 
 ## License

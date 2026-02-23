@@ -1,20 +1,18 @@
 """
-alto_wordlevel.py - Alignement positions Kraken + texte GT pour ALTO word-level
-================================================================================
+alto_wordlevel.py - Conversion ALTO ligne-level → word-level via Kraken
+========================================================================
 
-Prend un ALTO eScriptorium (texte GT, pas de positions mot) et produit un
-ALTO word-level avec :
-  - les positions caractère/mot récupérées depuis Kraken
-  - le texte GT conservé (pas le texte OCR)
+Prend un ALTO eScriptorium (une <String> par <TextLine>) et produit un
+ALTO word-level avec une <String> par mot et une <Glyph> par caractère.
 
-Corrections :
-  - Couleurs terminal : vert (OK), rouge (erreur), orange (aucune ligne)
-  - Les lignes déjà word-level sont retraitées (pas skippées) pour intégrer
-    les corrections manuelles de l'annotateur
-  - Gestion des NaN dans HPOS/VPOS/WIDTH/HEIGHT
-  - Les attributs numériques sont toujours des entiers (pas de floats)
-  - Les caractères spéciaux XML dans CONTENT sont échappés (&quot; etc.)
-  - Les lignes sans baseline/polygon sont skippées proprement
+Les positions sont récupérées depuis Kraken (reconnaissance baseline),
+puis alignées avec le texte GT via Levenshtein — le texte GT est toujours
+conservé, même quand Kraken fait des erreurs.
+
+Les lignes déjà word-level sont retraitées pour intégrer les corrections
+manuelles de l'annotateur. Les lignes sans baseline ou polygon sont
+skippées proprement. Les coordonnées NaN/Inf produites par Kraken sur
+les baselines dégénérées sont filtrées silencieusement.
 
 Usage :
     # Fichier unique (écrase l'original)
@@ -136,7 +134,6 @@ def cuts_to_bbox(cuts: list) -> tuple:
     """Convertit une liste de cuts en bbox (x1,y1,x2,y2) entiers.
     Filtre les coordonnées NaN/Inf produites par Kraken sur les baselines dégénérées.
     """
-    import math
     all_pts = [pt for cut in cuts for pt in cut]
     xs = [p[0] for p in all_pts if not (isinstance(p[0], float) and (math.isnan(p[0]) or math.isinf(p[0])))]
     ys = [p[1] for p in all_pts if not (isinstance(p[1], float) and (math.isnan(p[1]) or math.isinf(p[1])))]
@@ -249,11 +246,22 @@ def recognize_lines(img: Image.Image, lines: list, net) -> list:
                 text_direction='horizontal-lr',
                 script_detection=False
             )
-            for record in rpred.rpred(net, img, seg):
-                results.append({**line,
-                    'ocr_text': record.prediction,
-                    'cuts': record.cuts,
-                })
+            def clean_cut(cut):
+                return [[0, 0] if (math.isnan(float(p[0])) or math.isnan(float(p[1]))
+                                or math.isinf(float(p[0])) or math.isinf(float(p[1])))
+                        else [int(p[0]), int(p[1])]
+                        for p in cut]
+            try:
+                for record in rpred.rpred(net, img, seg):
+                    clean_cuts = [clean_cut(c) for c in record.cuts]
+                    results.append({**line,
+                        'ocr_text': record.prediction,
+                        'cuts': clean_cuts,
+                    })
+            except Exception as e2:
+                gt_preview = line['gt_text'][:30]
+                print(f"\n  {err(f'[!] Echec rpred {gt_preview!r} : {e2}')}")
+                results.append({**line, 'ocr_text': None, 'cuts': []})
         except Exception as e:
             gt_preview = line['gt_text'][:30]
             print(f"\n  {err(f'[!] Echec ligne {gt_preview!r} : {e}')}")

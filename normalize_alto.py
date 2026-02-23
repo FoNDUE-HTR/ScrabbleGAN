@@ -94,14 +94,9 @@ def process_file(xml_path: Path, output_path: Path,
 
     def replace_content(m):
         original = m.group(1)
-        # Décoder les entités XML avant filtrage (&quot; → ", &amp; → &, etc.)
-        from html import unescape, escape
-        decoded = unescape(original)
-        filtered = filter_text(decoded, valid_chars,
+        filtered = filter_text(original, valid_chars,
                                report_changes=changes if report else None)
-        # Ré-encoder les caractères spéciaux XML
-        reencoded = escape(filtered, quote=True)
-        return f'CONTENT="{reencoded}"'
+        return f'CONTENT="{filtered}"'
 
     result = re.sub(r'CONTENT="([^"]*)"', replace_content, content)
     output_path.write_text(result, encoding='utf-8')

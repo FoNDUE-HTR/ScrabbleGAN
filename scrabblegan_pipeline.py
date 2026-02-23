@@ -220,7 +220,6 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
                 col_a = img_a[:, -4:, :].astype(np.float32).mean(axis=(0,1))
                 col_b = img_b[:, :4, :].astype(np.float32).mean(axis=(0,1))
                 mid_color = ((col_a + col_b) / 2).astype(np.uint8)
-                # mid_color = bg_color.astype(np.uint8)
                 mid_color = np.array(bg_color).astype(np.uint8)
                 gap = np.stack([
                     np.full((h, space), mid_color[0], dtype=np.uint8),

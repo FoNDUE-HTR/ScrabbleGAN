@@ -167,6 +167,7 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
     if bg_color is None:
         bg_color = (220, 210, 185)  # beige par defaut
 
+
     def normalize_img(img_arr, bg=bg_color):
         """Normalise vers [0,255] et applique la couleur de fond des originaux."""
         arr = np.array(img_arr, dtype=np.float32)
@@ -204,9 +205,10 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
                         random_num_imgs=1,
                         word_list=[clean_w]
                     )
+
                     word_imgs.append((orig_w, normalize_img(imgs[0])))
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f"Error: {e}")
             if not word_imgs:
                 continue
 
@@ -218,6 +220,7 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
                 col_a = img_a[:, -4:, :].astype(np.float32).mean(axis=(0,1))
                 col_b = img_b[:, :4, :].astype(np.float32).mean(axis=(0,1))
                 mid_color = ((col_a + col_b) / 2).astype(np.uint8)
+                mid_color = np.array(bg_color).astype(np.uint8)
                 gap = np.stack([
                     np.full((h, space), mid_color[0], dtype=np.uint8),
                     np.full((h, space), mid_color[1], dtype=np.uint8),

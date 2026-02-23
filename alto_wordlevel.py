@@ -303,11 +303,18 @@ def build_alto_xml(lines_data: list, page_w: int, page_h: int,
                    img_name: str) -> str:
     """Génère un ALTO v4 word-level — attributs numériques toujours entiers."""
 
+    def safe_coord(v):
+        try:
+            f = float(v)
+            return 0 if (math.isnan(f) or math.isinf(f)) else int(f)
+        except (TypeError, ValueError):
+            return 0
+
     def pts_to_str(pts):
-        return ' '.join(f"{int(p[0])} {int(p[1])}" for p in pts)
+        return ' '.join(f"{safe_coord(p[0])} {safe_coord(p[1])}" for p in pts)
 
     def cut_to_poly(cut):
-        return ' '.join(f"{int(p[0])} {int(p[1])}" for p in cut)
+        return ' '.join(f"{safe_coord(p[0])} {safe_coord(p[1])}" for p in cut)
 
     def e(s):
         return xml_escape(str(s), quote=True)

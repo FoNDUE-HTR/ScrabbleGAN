@@ -452,7 +452,7 @@ def step_finetune(weights: str, charmap: str, alto_dir: str, output_dir: str, ep
     if not pairs:
         print(f"[!] Aucune paire ALTO/image dans {alto_dir}")
         return
-    image_height = 64
+    image_height = 32
     samples = []  # [(img_array H=32, text), ...]
     for xml_path, img_path in pairs:
 

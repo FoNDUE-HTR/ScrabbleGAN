@@ -155,7 +155,7 @@ Normalizes the text content of ALTO files to match a given char_map, for compati
 
 XML entities (`&amp;`, `&quot;`, etc.) are decoded before processing and re-encoded after. Unicode is normalized to NFC before comparison.
 
-Run this step **after** `alto_wordlevel.py` and **before** `scrabblegan_pipeline.py --step finetune`, so that image content and text labels are in sync.
+> ⚠️ This step is only relevant when **fine-tuning an existing model** (RIMES or IAM). If you are training from scratch with your own char_map, skip this step — normalizing to a pre-existing alphabet makes no sense in that context.
 
 ### Usage
 

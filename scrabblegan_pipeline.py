@@ -46,7 +46,8 @@ def parse_alto(alto_path: str) -> list[dict]:
     ns = root.tag.split("}")[0] + "}" if root.tag.startswith("{") else ""
     lines = []
     for tl in root.iter(f"{ns}TextLine"):
-        text = " ".join(s.get("CONTENT", "") for s in tl.iter(f"{ns}String")).strip()
+        from html import unescape
+        text = unescape(" ".join(s.get("CONTENT", "") for s in tl.iter(f"{ns}String")).strip())
         if text:
             lines.append({"id": tl.get("ID", ""), "text": text})
     return lines
@@ -137,6 +138,8 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
                 del _sys.modules[mod]
         from generate_images import ImgGenerator
         from config import Config
+        # Adapter num_chars au charmap chargé (IAM=74, RIMES=93, etc.)
+        Config.num_chars = len(char_map) if isinstance(char_map, dict) else len(set(char_map))
         generator = ImgGenerator(
             checkpt_path=str(Path(weights).resolve()),
             config=Config,
@@ -155,29 +158,36 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
     # On echantillonne depuis les vraies images pour matcher la couleur
     bg_color = None
     _pairs = find_pairs(alto_dir)
-    for _, img_path in _pairs[:3]:
+    _samples = []
+    for _, img_path in _pairs[:10]:
         try:
             sample = PILImage.open(img_path).convert("RGB")
             arr_s  = np.array(sample)
-            # Prendre le 95e percentile (fond clair)
-            bg_color = tuple(int(np.percentile(arr_s[:,:,c], 95)) for c in range(3))
-            break
+            _samples.append(tuple(int(np.percentile(arr_s[:,:,c], 95)) for c in range(3)))
         except Exception:
             pass
+    if _samples:
+        bg_color = tuple(int(np.mean([s[c] for s in _samples])) for c in range(3))
     if bg_color is None:
         bg_color = (220, 210, 185)  # beige par defaut
+    print(f"  bg_color calculé sur {len(_samples)} images : {bg_color}")
 
 
     def normalize_img(img_arr, bg=bg_color):
-        """Normalise vers [0,255] et applique la couleur de fond des originaux."""
+        """Normalise vers [0,255] et applique la couleur de fond des originaux.
+        blanc (fond) -> bg_color, noir (encre) -> noir.
+        Étirement de contraste agressif pour compenser le faible contraste ScrabbleGAN.
+        """
         arr = np.array(img_arr, dtype=np.float32)
+        # Étirement de contraste : forcer le min à 0, le max à 255
         arr = (arr - arr.min()) / (arr.max() - arr.min() + 1e-8)
-        gray = (arr * 255).astype(np.uint8)
-        # Convertir en RGB en tintant : blanc -> bg_color, noir -> noir
+        # Accentuer le contraste : courbe gamma < 1 pousse l'encre vers le noir
+        arr = arr ** 1.8
+        # Teinte : fond (arr≈1) → bg_color, encre (arr≈0) → noir
         rgb = np.stack([
-            (gray.astype(np.float32) / 255 * bg[0]).astype(np.uint8),
-            (gray.astype(np.float32) / 255 * bg[1]).astype(np.uint8),
-            (gray.astype(np.float32) / 255 * bg[2]).astype(np.uint8),
+            (arr * bg[0]).astype(np.uint8),
+            (arr * bg[1]).astype(np.uint8),
+            (arr * bg[2]).astype(np.uint8),
         ], axis=2)
         return rgb
 
@@ -220,7 +230,6 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
                 col_a = img_a[:, -4:, :].astype(np.float32).mean(axis=(0,1))
                 col_b = img_b[:, :4, :].astype(np.float32).mean(axis=(0,1))
                 mid_color = ((col_a + col_b) / 2).astype(np.uint8)
-                mid_color = np.array(bg_color).astype(np.uint8)
                 gap = np.stack([
                     np.full((h, space), mid_color[0], dtype=np.uint8),
                     np.full((h, space), mid_color[1], dtype=np.uint8),
@@ -473,7 +482,8 @@ def step_finetune(weights: str, charmap: str, alto_dir: str, output_dir: str, ep
         # Extraction au niveau MOT (<String>) et non ligne (<TextLine>)
         # ScrabbleGAN est concu pour des mots isoles, pas des lignes entieres
         for s in root.iter(f"{ns}String"):
-            text = s.get("CONTENT", "").strip()
+            from html import unescape
+            text = unescape(s.get("CONTENT", "").strip())
             if not text:
                 continue
             # Nettoyer le mot : garder seulement les caracteres dans l'alphabet
@@ -585,7 +595,7 @@ class Config:
     d_loss_fn = 'HingeLoss'
     r_loss_fn = 'CTCLoss'
     z_dim = 128
-    num_chars = 93
+    num_chars = {len(char2idx)}
     weight_dir = r'{ckpt_dir_abs}'
     device = _torch.device('cuda' if _torch.cuda.is_available() else 'cpu')
 """

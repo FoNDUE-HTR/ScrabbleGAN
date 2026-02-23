@@ -452,7 +452,7 @@ def step_finetune(weights: str, charmap: str, alto_dir: str, output_dir: str, ep
     if not pairs:
         print(f"[!] Aucune paire ALTO/image dans {alto_dir}")
         return
-
+    image_height = 64
     samples = []  # [(img_array H=32, text), ...]
     for xml_path, img_path in pairs:
 
@@ -491,9 +491,9 @@ def step_finetune(weights: str, charmap: str, alto_dir: str, output_dir: str, ep
             if x2 <= x1 or y2 <= y1:
                 continue
             patch = img_full.crop((x1, y1, x2, y2))
-            ratio = 32 / patch.height
+            ratio = image_height / patch.height
             new_w = max(1, int(patch.width * ratio))
-            patch = patch.resize((new_w, 32), Image.LANCZOS)
+            patch = patch.resize((new_w, image_height), Image.LANCZOS)
             samples.append((np.array(patch), text))
             if save_patches_dir:
                 safe = text[:30].replace(" ", "_").replace("/", "-")
@@ -553,7 +553,7 @@ import torch as _torch
 class Config:
     dataset = 'RIMES'
     data_folder_path = './RIMES/'
-    img_h = 32
+    img_h = {image_height}
     char_w = 16
     partition = 'tr'
     batch_size = 8

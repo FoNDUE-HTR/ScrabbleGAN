@@ -18,7 +18,7 @@ class Config:
     grad_balance = True
     data_file = r'/Users/gabays/github/ARCHIMED/data_aug/synthetic_v2/finetuned/custom_data.pkl'
     lexicon_file_name = 'Lexique383.tsv'
-    lexicon_file = r'/Users/gabays/github/ARCHIMED/data_aug/scrabblegan_arshjot/data/Lexicon/Lexique383.tsv'
+    lexicon_file = r'/home/mgl/Bureau/Travail/projets/Front_Justice/scripts_divers/ScrabbleGAN/scrabblegan_arshjot/data/Lexicon/Lexique383.tsv'
     lmdb_output = './data/custom_lmdb'
     architecture = 'ScrabbleGAN'
     r_ks = [3, 3, 3, 3, 3, 3, 2]

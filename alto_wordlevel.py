@@ -133,10 +133,15 @@ def map_gt_to_cuts(gt: str, ocr: str, cuts: list) -> list:
 
 
 def cuts_to_bbox(cuts: list) -> tuple:
-    """Convertit une liste de cuts en bbox (x1,y1,x2,y2) entiers."""
+    """Convertit une liste de cuts en bbox (x1,y1,x2,y2) entiers.
+    Filtre les coordonnées NaN/Inf produites par Kraken sur les baselines dégénérées.
+    """
+    import math
     all_pts = [pt for cut in cuts for pt in cut]
-    xs = [p[0] for p in all_pts]
-    ys = [p[1] for p in all_pts]
+    xs = [p[0] for p in all_pts if not (isinstance(p[0], float) and (math.isnan(p[0]) or math.isinf(p[0])))]
+    ys = [p[1] for p in all_pts if not (isinstance(p[1], float) and (math.isnan(p[1]) or math.isinf(p[1])))]
+    if not xs or not ys:
+        return 0, 0, 1, 1
     return int(min(xs)), int(min(ys)), int(max(xs)), int(max(ys))
 
 

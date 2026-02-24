@@ -41,6 +41,25 @@ def load_charmap(charmap_path: str) -> set:
     return chars
 
 
+def load_additional_chars(txt_path: str) -> set:
+    """
+    Charge un fichier texte contenant un caractère par ligne.
+    Ignore les lignes vides.
+    """
+    extra_chars = set()
+    with open(txt_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            c = line.strip('\n').strip('\r')
+            if c:
+                if len(c) != 1:
+                    raise ValueError(
+                        f"Caractère invalide dans {txt_path!r}: {c!r} "
+                        "(doit être un seul caractère)"
+                    )
+                extra_chars.add(c)
+    return extra_chars
+
+
 def strip_diacritics(text: str) -> str:
     """Retire les diacritiques : é→e, à→a, ç→c, etc."""
     nfd = unicodedata.normalize('NFD', text)
@@ -124,14 +143,25 @@ Exemples :
     )
     parser.add_argument('--xml_dir',    required=True, help='Dossier contenant les ALTO')
     parser.add_argument('--charmap',    required=True, help='Fichier char_map .pkl (IAM, RIMES...)')
+    parser.add_argument('--addchar',    required=False, help='Fichier txt avec un caractère par ligne à retirer du char_map')
     parser.add_argument('--output_dir', default=None,  help='Dossier de sortie (défaut = écrase les originaux)')
     parser.add_argument('--report',     action='store_true', help='Afficher les changements effectués')
     args = parser.parse_args()
 
     valid_chars = load_charmap(args.charmap)
     print(f"Char_map chargé : {len(valid_chars)} caractères valides")
-    if args.report:
-        print(f"  {sorted(valid_chars)}")
+
+    if args.addchar:
+        remove_chars = load_additional_chars(args.addchar)
+        print(f"Suppression de {len(remove_chars)} caractères depuis {args.addchar}")
+
+        intersection = valid_chars.intersection(remove_chars)
+        if intersection:
+            print(f"  Retirés : {sorted(intersection)}")
+
+        valid_chars.difference_update(remove_chars)
+
+    print(f"Total final : {len(valid_chars)} caractères valides")
 
     xml_dir    = Path(args.xml_dir)
     output_dir = Path(args.output_dir) if args.output_dir else None

@@ -9,6 +9,8 @@ This pipeline builds on [arshjot/ScrabbleGAN](https://github.com/arshjot/Scrabbl
 ```
 ALTO/image pairs
     │
+    ├── contrast_enhance.py   →  (optional) gamma correction on images before training
+    │
     ├── alto_wordlevel.py     →  word-level ALTO (Kraken positions + GT text preserved)
     │
     ├── normalize_alto.py     →  normalize ALTO text to char_map (diacritics + filtering)
@@ -16,6 +18,8 @@ ALTO/image pairs
     └── scrabblegan_pipeline.py
             ├── finetune      →  fine-tune ScrabbleGAN on your word patches
             └── generate      →  synthetic line images + ALTO v4
+                                    │
+                                    └── style_transfer.py  →  (optional) apply real document colours
 ```
 
 ---
@@ -24,9 +28,11 @@ ALTO/image pairs
 
 | Script | Description |
 |--------|-------------|
+| `contrast_enhance.py` | *(optional)* Gamma correction on images before fine-tuning |
 | `alto_wordlevel.py` | Converts eScriptorium line-level ALTO to word-level using Kraken alignment |
 | `normalize_alto.py` | Normalizes ALTO text to a char_map (diacritics, unsupported characters) |
 | `scrabblegan_pipeline.py` | Fine-tunes ScrabbleGAN and generates synthetic handwriting images |
+| `style_transfer.py` | *(optional)* Applies real document colours to synthetic images |
 | `convert_weights.py` | Converts legacy PyTorch weights (`.pkl` + blob folder) to modern `.pt` format |
 
 ---
@@ -81,6 +87,31 @@ Two ALTO variants are handled:
 - **Word-level**: one `<String>` per word with individual bounding boxes — needed for fine-tuning and richer training data
 
 Use `alto_wordlevel.py` to convert line-level to word-level before fine-tuning.
+
+---
+
+## Script 0 — contrast_enhance.py *(optional)*
+
+Applies gamma correction to all images in a folder before fine-tuning. This can improve the GAN's ability to learn contrast between ink and background.
+
+- `gamma < 1` : darkens the image (useful if the background is too light)
+- `gamma > 1` : lightens the image (useful if the image is too dark overall)
+
+XML (ALTO) files are automatically copied to the output folder to preserve image/transcription pairs.
+
+### Usage
+
+```bash
+python contrast_enhance.py --input_dir data/ --output_dir data_gamma/ --gamma 0.8
+```
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--input_dir` | required | Folder containing images (and paired XML files) |
+| `--output_dir` | required | Output folder |
+| `--gamma` | `0.8` | Gamma value (`<1` darkens, `>1` lightens) |
 
 ---
 
@@ -289,6 +320,50 @@ python convert_weights.py --verify ./models/RIMES_data_reshaped.pt
 | `--data_dir` | `./data` | Folder containing tensor blobs |
 | `--output` | `./data_final.pt` | Output `.pt` file |
 | `--verify` | — | Verify an existing `.pt` file |
+
+---
+
+## Script 5 — style_transfer.py *(optional)*
+
+Applies the colour palette of real historical documents to synthetic ScrabbleGAN images, making them visually more realistic. Uses colour sampling (ink + background) from real images rather than texture blending, to avoid halos and texture artefacts.
+
+Two presets are available depending on your source corpus:
+
+| Config | Best for | ink_darken | mask_gamma |
+|--------|----------|------------|------------|
+| `IAM` | Normal contrast documents | 0.5 | 1.5 |
+| `RIMES` | Low contrast / medical documents | 0.15 | 2.5 |
+
+### Usage
+
+```bash
+# Single image
+python style_transfer.py \
+    --synth synthetic/generated/00001_text_000.png \
+    --real_dir backgrounds/ --output test_styled.png --config IAM
+
+# Entire folder
+python style_transfer.py \
+    --synth_dir synthetic/generated/ \
+    --real_dir backgrounds/ --output_dir synthetic_styled/ --config RIMES
+```
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--synth` | — | Single synthetic image |
+| `--synth_dir` | — | Folder of synthetic images |
+| `--real_dir` | required | Folder of real document images (background samples) |
+| `--output` | `<stem>_styled.png` | Output file (single mode) |
+| `--output_dir` | `<synth_dir>_styled/` | Output folder (batch mode) |
+| `--config` | `IAM` | Colour preset: `IAM` or `RIMES` |
+| `--seed` | — | Random seed for reproducibility |
+
+### Notes
+
+- `.txt` transcription files are automatically copied to the output folder
+- The `--real_dir` folder should contain representative patches of the target document style (background texture, colour)
 
 ---
 

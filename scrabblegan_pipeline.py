@@ -646,6 +646,24 @@ class Config:
 """, encoding="utf-8")
     print(f"  -> config.py réécrit")
 
+    # Vérifier que le checkpoint de base correspond au charmap
+    import torch as _torch_check
+    try:
+        _ckpt_check = _torch_check.load(weights, map_location="cpu")
+        _state_check = _ckpt_check.get("model", _ckpt_check.get("state_dict", _ckpt_check))
+        _r_out = _state_check.get("R.output.weight")
+        if _r_out is not None:
+            _ckpt_chars = _r_out.shape[0]
+            if _ckpt_chars != len(char2idx):
+                print(_err(f'[!] ERREUR : le checkpoint de base a {_ckpt_chars} chars mais le charmap en a {len(char2idx)}.'))
+                print(f"{_err('    Ces deux valeurs doivent être identiques pour le fine-tuning.')}")
+                config_path.write_text(original_config, encoding="utf-8")
+                return
+            else:
+                print(f"  -> Checkpoint de base OK : {_ckpt_chars} chars (correspond au charmap)")
+    except Exception as _e:
+        print(f"  {_warn(f'[!] Impossible de vérifier le checkpoint de base : {_e}')}")
+
     weights_dir = SCRABBLEGAN_DIR.resolve() / "weights"
     weights_dir.mkdir(exist_ok=True)
     existing = list(weights_dir.glob("*.pth.tar"))
@@ -657,9 +675,16 @@ class Config:
         for old_ckpt in existing:
             shutil.move(str(old_ckpt), archive_dir / old_ckpt.name)
         print(f"  -> {len(existing)} checkpoint(s) archivés dans {archive_dir.name}/")
+        # Vérifier qu il ne reste vraiment plus rien
+        remaining = list(weights_dir.glob("*.pth.tar"))
+        if remaining:
+            print(f"  {_err(f'[!] Des checkpoints nont pas pu etre archivés : {[r.name for r in remaining]}')}")
+            print(f"  {_err('    Supprimez-les manuellement avant de relancer.')}")
+            config_path.write_text(original_config, encoding="utf-8")
+            return
     ckpt_in_weightdir = weights_dir / "model_checkpoint_epoch_0.pth.tar"
     shutil.copy(weights, ckpt_in_weightdir)
-    print(f"  -> Checkpoint copié -> {ckpt_in_weightdir}")
+    print(f"  -> Weights dir propre, checkpoint de base copié -> {ckpt_in_weightdir}")
 
     print(f"[4/4] Lancement de train.py ({epochs} epochs)...")
     result = subprocess.run(

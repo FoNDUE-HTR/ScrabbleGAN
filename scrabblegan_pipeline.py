@@ -560,6 +560,9 @@ def step_finetune(weights: str, charmap: str, alto_dir: str, output_dir: str,
             if x2 <= x1 or y2 <= y1: continue
             patch = img_full.crop((x1, y1, x2, y2))
             new_w = max(1, int(patch.width * 32 / patch.height))
+            # Ignorer les patches trop étroits (causeraient un crash dans le discriminateur)
+            if new_w < 16:
+                continue
             patch = patch.resize((new_w, 32), Image.LANCZOS)
             samples.append((np.array(patch), text))
             if save_patches_dir:

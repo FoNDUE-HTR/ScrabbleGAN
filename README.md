@@ -9,31 +9,38 @@ This pipeline builds on [arshjot/ScrabbleGAN](https://github.com/arshjot/Scrabbl
 ```
 ALTO/image pairs
     │
-    ├── contrast_enhance.py   →  (optional) gamma correction on images before training
+    ├── --step contrast    →  (optional) gamma correction on images before training
     │
-    ├── alto_wordlevel.py     →  word-level ALTO (Kraken positions + GT text preserved)
+    ├── --step wordlevel   →  word-level ALTO (Kraken positions + GT text preserved)
+    │                         images copied to output folder
     │
-    ├── normalize_alto.py     →  normalize ALTO text to char_map (diacritics + filtering)
+    ├── --step normalize   →  normalize ALTO text to char_map (diacritics + filtering)
+    │                         images copied to output folder
     │
-    └── scrabblegan_pipeline.py
-            ├── finetune      →  fine-tune ScrabbleGAN on your word patches
-            └── generate      →  synthetic line images + ALTO v4
-                                    │
-                                    └── style_transfer.py  →  (optional) apply real document colours
+    ├── --step finetune    →  fine-tune ScrabbleGAN on your word patches
+    │                         previous checkpoints archived (timestamped)
+    │
+    ├── --step generate    →  synthetic line images + ALTO v4
+    │
+    └── --step style       →  (optional) apply real document colours (IAM / RIMES preset)
 ```
 
 ---
 
 ## Scripts
 
-| Script | Description |
-|--------|-------------|
-| `contrast_enhance.py` | *(optional)* Gamma correction on images before fine-tuning |
-| `alto_wordlevel.py` | Converts eScriptorium line-level ALTO to word-level using Kraken alignment |
-| `normalize_alto.py` | Normalizes ALTO text to a char_map (diacritics, unsupported characters) |
-| `scrabblegan_pipeline.py` | Fine-tunes ScrabbleGAN and generates synthetic handwriting images |
-| `style_transfer.py` | *(optional)* Applies real document colours to synthetic images |
-| `convert_weights.py` | Converts legacy PyTorch weights (`.pkl` + blob folder) to modern `.pt` format |
+| Step | Description |
+|------|-------------|
+| `--step contrast` | *(optional)* Gamma correction on images before fine-tuning |
+| `--step wordlevel` | Converts eScriptorium line-level ALTO to word-level using Kraken alignment |
+| `--step normalize` | Normalizes ALTO text to a char_map (diacritics, unsupported characters) |
+| `--step finetune` | Fine-tunes ScrabbleGAN on your word patches |
+| `--step generate` | Generates synthetic handwriting images + ALTO v4 |
+| `--step style` | *(optional)* Applies real document colours to synthetic images |
+
+All steps are invoked via a single script: `scrabblegan_pipeline.py`
+
+Legacy utility: `convert_weights.py` — converts legacy PyTorch weights (`.pkl` + blob folder) to modern `.pt` format
 
 ---
 
@@ -90,19 +97,19 @@ Use `alto_wordlevel.py` to convert line-level to word-level before fine-tuning.
 
 ---
 
-## Script 0 — contrast_enhance.py *(optional)*
+## Step 0 — contrast *(optional)*
 
 Applies gamma correction to all images in a folder before fine-tuning. This can improve the GAN's ability to learn contrast between ink and background.
 
 - `gamma < 1` : darkens the image (useful if the background is too light)
 - `gamma > 1` : lightens the image (useful if the image is too dark overall)
 
-XML (ALTO) files are automatically copied to the output folder to preserve image/transcription pairs.
+XML (ALTO) files and images are automatically copied to the output folder to preserve pairs.
 
 ### Usage
 
 ```bash
-python contrast_enhance.py --input_dir data/ --output_dir data_gamma/ --gamma 0.8
+python scrabblegan_pipeline.py --step contrast --input_dir data/ --output_dir data_gamma/ --gamma 0.8
 ```
 
 ### Options
@@ -115,7 +122,7 @@ python contrast_enhance.py --input_dir data/ --output_dir data_gamma/ --gamma 0.
 
 ---
 
-## Script 1 — alto_wordlevel.py
+## Step 1 — wordlevel
 
 Converts eScriptorium line-level ALTO to word-level ALTO by:
 
@@ -129,42 +136,21 @@ Lines already at word-level are automatically reprocessed to integrate annotator
 ### Usage
 
 ```bash
-# Single file — overwrites the original
-python alto_wordlevel.py \
-    --xml data/page.xml \
-    --img data/page.jpg \
-    --model models/fondue_archimed_v4.mlmodel
+# Entire folder — separate output folder (images are copied automatically)
+python scrabblegan_pipeline.py --step wordlevel --xml_dir data/ --output_dir data_wordlevel/ --model models/fondue_archimed_v4.mlmodel
 
-# Single file — separate output
-python alto_wordlevel.py \
-    --xml data/page.xml \
-    --img data/page.jpg \
-    --model models/fondue_archimed_v4.mlmodel \
-    --output data/page_out.xml
-
-# Entire folder — overwrites originals (creates a timestamped zip backup first)
-python alto_wordlevel.py \
-    --xml_dir data/ \
-    --model models/fondue_archimed_v4.mlmodel
-
-# Entire folder — separate output folder
-python alto_wordlevel.py \
-    --xml_dir data/ \
-    --output_dir data_wordlevel/ \
-    --model models/fondue_archimed_v4.mlmodel
+# Overwrite originals (creates a timestamped zip backup first)
+python scrabblegan_pipeline.py --step wordlevel --xml_dir data/ --model models/fondue_archimed_v4.mlmodel
 ```
 
 ### Options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--xml` | — | Input ALTO file (single file mode) |
-| `--img` | — | Paired image (single file mode) |
-| `--xml_dir` | — | Folder containing ALTO files (batch mode) |
-| `--img_dir` | same as `xml_dir` | Folder containing images (batch mode) |
+| `--xml_dir` | required | Folder containing ALTO files |
+| `--img_dir` | same as `xml_dir` | Folder containing images |
 | `--model` | required | Kraken HTR model (`.mlmodel`) |
-| `--output` | overwrites original | Output file (single file mode) |
-| `--output_dir` | overwrites originals | Output folder (batch mode) |
+| `--output_dir` | overwrites originals | Output folder (images are copied here automatically) |
 | `--verbose` | off | Show GT/OCR/position details per line |
 
 ### Notes
@@ -176,7 +162,7 @@ python alto_wordlevel.py \
 
 ---
 
-## Script 2 — normalize_alto.py
+## Step 2 — normalize
 
 Normalizes the text content of ALTO files to match a given char_map, for compatibility with ScrabbleGAN (RIMES or IAM). For each character in each `CONTENT` attribute:
 
@@ -192,18 +178,13 @@ XML entities (`&amp;`, `&quot;`, etc.) are decoded before processing and re-enco
 
 ```bash
 # RIMES char_map — preserves French accents
-python normalize_alto.py \
-    --xml_dir data_wordlevel/ \
-    --charmap models/RIMES_char_map.pkl \
-    --output_dir data_normalized/ \
-    --report
+python scrabblegan_pipeline.py --step normalize --xml_dir data_wordlevel/ --charmap models/RIMES_char_map.pkl --output_dir data_normalized/ --report
 
 # IAM char_map — strips all accents (é→e, à→a, no French characters)
-python normalize_alto.py \
-    --xml_dir data_wordlevel/ \
-    --charmap models/IAM_char_map.pkl \
-    --output_dir data_normalized_iam/ \
-    --report
+python scrabblegan_pipeline.py --step normalize --xml_dir data_wordlevel/ --charmap models/IAM_char_map.pkl --output_dir data_normalized_iam/ --report
+
+# Remove additional characters not in the char_map
+python scrabblegan_pipeline.py --step normalize --xml_dir data_wordlevel/ --charmap models/RIMES_char_map.pkl --output_dir data_normalized/ --addchar models/supplementary_out_characters.txt --report
 ```
 
 ### Options
@@ -212,7 +193,8 @@ python normalize_alto.py \
 |--------|---------|-------------|
 | `--xml_dir` | required | Folder containing ALTO files |
 | `--charmap` | required | Char_map pickle file (RIMES, IAM, or any ScrabbleGAN `.pkl`) |
-| `--output_dir` | overwrites originals | Output folder |
+| `--output_dir` | overwrites originals | Output folder (images are copied here automatically) |
+| `--addchar` | — | Text file (1 char/line) listing characters to remove from the char_map |
 | `--report` | off | Print before/after changes per file |
 
 ### Notes
@@ -223,26 +205,25 @@ python normalize_alto.py \
 
 ---
 
-## Script 3 — scrabblegan_pipeline.py
+## Steps 3–4 — finetune & generate
 
-### Step 1 — Fine-tuning
+### Step 3 — finetune
 
 ```bash
-python scrabblegan_pipeline.py --step finetune \
-    --weights ./models/RIMES_data_reshaped.pt \
-    --charmap ./models/RIMES_char_map.pkl \
-    --alto_dir ./data_normalized/ \
-    --output_dir ./synthetic \
-    --epochs 100
+python scrabblegan_pipeline.py --step finetune --weights ./models/RIMES_data_reshaped.pt --charmap ./models/RIMES_char_map.pkl --alto_dir ./data_normalized/ --output_dir ./synthetic --epochs 100
+
+# Save output to log while monitoring in real time
+python scrabblegan_pipeline.py --step finetune --weights ./models/RIMES_data_reshaped.pt --charmap ./models/RIMES_char_map.pkl --alto_dir ./data_normalized/ --output_dir ./synthetic --epochs 100 2>&1 | tee train_RIMES.log
 ```
 
 This step:
 1. Loads the RIMES character map (93 French characters)
 2. Extracts word patches from all ALTO `<String>` elements, resized to H=32px
 3. Formats the dataset as `{'word_data': {id: (label, img_array)}, 'char_map': {...}}`
-4. Copies the checkpoint to `scrabblegan_arshjot/weights/model_checkpoint_epoch_0.pth.tar`
-5. Rewrites `config.py` with absolute paths, launches `train.py`, then restores `config.py`
-6. Saves the best checkpoint (lowest `R_real`) to `scrabblegan_arshjot/weights/model_best.pth.tar`
+4. Archives any existing checkpoints in a timestamped subfolder (`weights/archive_YYYYMMDD_HHMMSS/`)
+5. Copies the new checkpoint to `scrabblegan_arshjot/weights/model_checkpoint_epoch_0.pth.tar`
+6. Rewrites `config.py` with absolute paths, launches `train.py`, then restores `config.py`
+7. Saves the best checkpoint (lowest `R_real`) to `scrabblegan_arshjot/weights/model_best.pth.tar`
 
 **Options:**
 
@@ -266,16 +247,13 @@ This step:
 
 ---
 
-### Step 2 — Generate synthetic images
+### Step 4 — generate
 
 ```bash
-python scrabblegan_pipeline.py --step generate \
-    --weights scrabblegan_arshjot/weights/model_best.pth.tar \
-    --charmap ./models/RIMES_char_map.pkl \
-    --alto_dir ./data_normalized/ \
-    --output_dir ./synthetic \
-    --n_images 5
+python scrabblegan_pipeline.py --step generate --weights scrabblegan_arshjot/weights/model_best.pth.tar --charmap ./models/RIMES_char_map.pkl --alto_dir ./data_normalized/ --output_dir ./synthetic --n_images 5
 ```
+
+> ⚠️ The `--charmap` and `--weights` must match: a RIMES checkpoint (93 chars) requires `RIMES_char_map.pkl`, an IAM checkpoint (74 chars) requires `IAM_char_map.pkl`.
 
 This step:
 1. Extracts all unique line texts from your ALTO files
@@ -293,11 +271,11 @@ This step:
 | `--alto_dir` | `./data` | Folder with ALTO files |
 | `--output_dir` | `./synthetic_v2_ft` | Output folder |
 | `--n_images` | `5` | Synthetic images per line |
-| `--sharpen` | off | Apply 2-pass sharpening + ×2 upscale to generated images |
+
 
 ---
 
-## Script 4 — convert_weights.py
+## Utility — convert_weights.py
 
 Converts legacy PyTorch ScrabbleGAN weights to modern `.pt` format.
 
@@ -323,7 +301,7 @@ python convert_weights.py --verify ./models/RIMES_data_reshaped.pt
 
 ---
 
-## Script 5 — style_transfer.py *(optional)*
+## Step 5 — style *(optional)*
 
 Applies the colour palette of real historical documents to synthetic ScrabbleGAN images, making them visually more realistic. Uses colour sampling (ink + background) from real images rather than texture blending, to avoid halos and texture artefacts.
 
@@ -338,27 +316,21 @@ Two presets are available depending on your source corpus:
 
 ```bash
 # Single image
-python style_transfer.py \
-    --synth synthetic/generated/00001_text_000.png \
-    --real_dir backgrounds/ --output test_styled.png --config IAM
+python scrabblegan_pipeline.py --step style --synth_dir synthetic/generated/ --real_dir backgrounds/ --output_dir synthetic_styled/ --config IAM
 
-# Entire folder
-python style_transfer.py \
-    --synth_dir synthetic/generated/ \
-    --real_dir backgrounds/ --output_dir synthetic_styled/ --config RIMES
+# Low-contrast / medical documents
+python scrabblegan_pipeline.py --step style --synth_dir synthetic/generated/ --real_dir backgrounds/ --output_dir synthetic_styled/ --config RIMES
 ```
 
 ### Options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--synth` | — | Single synthetic image |
-| `--synth_dir` | — | Folder of synthetic images |
+| `--synth_dir` | required | Folder of synthetic images |
 | `--real_dir` | required | Folder of real document images (background samples) |
-| `--output` | `<stem>_styled.png` | Output file (single mode) |
-| `--output_dir` | `<synth_dir>_styled/` | Output folder (batch mode) |
+| `--output_dir` | `<synth_dir>_styled/` | Output folder |
 | `--config` | `IAM` | Colour preset: `IAM` or `RIMES` |
-| `--seed` | — | Random seed for reproducibility |
+
 
 ### Notes
 
@@ -383,6 +355,9 @@ scrabblegan_arshjot/weights/
   model_checkpoint_epoch_1.pth.tar
   ...
   model_best.pth.tar                   # best checkpoint (lowest R_real)
+  archive_20260225_143022/             # previous session checkpoints (auto-archived)
+    model_best.pth.tar
+    ...
 ```
 
 ---
@@ -408,8 +383,9 @@ ketos train -f alto -d ./manifest_all.csv
 - **Batch size**: default is 8. With word-level ALTO you get ~4-5× more patches than line-level
 - **Epochs**: 100 epochs ≈ 65 minutes on CPU (Apple Silicon). `R_real` typically converges around epoch 50-70
 - **Best model**: `model_best.pth.tar` is automatically saved whenever `R_real` improves
-- **Character filtering**: use `normalize_alto.py` before fine-tuning to ensure text labels and image content are in sync
-- **alto_wordlevel.py**: works best with a model trained on the same script type; a high OCR error rate means word positions may be approximate for that line
+- **Character filtering**: run `--step normalize` before fine-tuning to ensure text labels and image content are in sync
+- **wordlevel**: works best with a Kraken model trained on the same script type; a high OCR error rate means word positions may be approximate for that line
+- **Checkpoint/charmap match**: always use the same charmap for `finetune` and `generate` — a RIMES checkpoint (93 chars) is incompatible with an IAM charmap (74 chars) and will raise a size mismatch error
 
 ## License
 

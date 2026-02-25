@@ -645,9 +645,15 @@ class Config:
 
     weights_dir = SCRABBLEGAN_DIR.resolve() / "weights"
     weights_dir.mkdir(exist_ok=True)
-    for old_ckpt in weights_dir.glob("*.pth.tar"):
-        old_ckpt.unlink()
-        print(f"  -> Ancien checkpoint supprimé : {old_ckpt.name}")
+    existing = list(weights_dir.glob("*.pth.tar"))
+    if existing:
+        import datetime
+        stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        archive_dir = weights_dir / f"archive_{stamp}"
+        archive_dir.mkdir()
+        for old_ckpt in existing:
+            shutil.move(str(old_ckpt), archive_dir / old_ckpt.name)
+        print(f"  -> {len(existing)} checkpoint(s) archivés dans {archive_dir.name}/")
     ckpt_in_weightdir = weights_dir / "model_checkpoint_epoch_0.pth.tar"
     shutil.copy(weights, ckpt_in_weightdir)
     print(f"  -> Checkpoint copié -> {ckpt_in_weightdir}")

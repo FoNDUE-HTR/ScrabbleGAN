@@ -67,67 +67,91 @@ def load_backgrounds(real_dir: str) -> list:
 # 2. COMPOSITION
 # =============================================================================
 
+# =============================================================================
+# CONFIGS PRÉDÉFINIES
+# =============================================================================
+
+CONFIGS = {
+    'IAM': {
+        'bg_percentile':  80,   # seuil fond : pixels au-dessus = papier
+        'ink_percentile': 15,   # seuil encre : pixels en-dessous = encre
+        'ink_darken':     0.5,  # facteur d'assombrissement de l'encre
+        'mask_blur':      0.6,  # flou sur le masque (bords de l'encre)
+        'mask_gamma':     1.5,  # gamma modéré
+    },
+    'RIMES': {
+        'bg_percentile':  85,
+        'ink_percentile': 10,
+        'ink_darken':     0.15, # encre très sombre pour les docs peu contrastés
+        'mask_blur':      0.4,  # flou réduit pour bords plus nets
+        'mask_gamma':     2.5,  # gamma plus fort pour durcir le masque
+    },
+}
+
+DEFAULT_CONFIG = 'IAM'
+
+
+def sample_colors(bg: Image.Image, cfg: dict) -> tuple:
+    """
+    Échantillonne la couleur du fond (papier) et de l'encre depuis une vraie image.
+    Retourne deux tableaux RGB shape (3,).
+    """
+    arr = np.array(bg.convert('RGB')).astype(float)
+    gray = arr.mean(axis=2)
+
+    bg_mask  = gray > np.percentile(gray, cfg['bg_percentile'])
+    ink_mask = gray < np.percentile(gray, cfg['ink_percentile'])
+
+    bg_color  = arr[bg_mask].mean(axis=0)  if bg_mask.any()  else np.array([220., 210., 185.])
+    ink_color = arr[ink_mask].mean(axis=0) * cfg['ink_darken'] \
+                if ink_mask.any() else np.array([30., 25., 20.])
+
+    return bg_color, ink_color
+
+
 def compose(synth_path: str, backgrounds: list,
             blur_radius: float = 1.5,
             bg_low: float = 160,
-            bg_high: float = 240) -> Image.Image:
+            bg_high: float = 240,
+            cfg: dict = None) -> Image.Image:
     """
-    Compose une image synthétique ScrabbleGAN sur un fond réel en RGB.
-
-    La normalisation du fond est globale (pas par canal) pour préserver
-    la teinte naturelle du papier (beige, jaunâtre, etc.).
+    Compose une image synthétique ScrabbleGAN en lui appliquant les couleurs
+    d'encre et de fond échantillonnées depuis une vraie image.
 
     Args:
         synth_path  : chemin vers l'image synthétique (grayscale)
         backgrounds : liste d'images PIL de fond RGB
-        blur_radius : lissage gaussien du fond (0 = désactivé)
-        bg_low      : borne basse de la normalisation du fond (défaut 160)
-        bg_high     : borne haute de la normalisation du fond (défaut 240)
+        cfg         : config prédéfinie (IAM ou RIMES)
 
     Returns:
         Image PIL RGB composée
     """
+    if cfg is None:
+        cfg = CONFIGS[DEFAULT_CONFIG]
     synth = Image.open(synth_path).convert('L')
     sw, sh = synth.size
     synth_arr = np.array(synth).astype(float)
 
-    # Normaliser le synth vers 0-255 (le GAN génère souvent max ~106)
+    # Normaliser le synth vers 0-255
     s_min, s_max = synth_arr.min(), synth_arr.max()
     if s_max > s_min:
         synth_norm = (synth_arr - s_min) / (s_max - s_min) * 255
     else:
         synth_norm = synth_arr.copy()
 
-    # Fond : tirage aléatoire + recadrage
-    bg = random.choice(backgrounds)
-    bw, bh = bg.size
-    if bw >= sw and bh >= sh:
-        x = random.randint(0, bw - sw)
-        y = random.randint(0, bh - sh)
-        bg = bg.crop((x, y, x + sw, y + sh))
-    else:
-        bg = bg.resize((sw, sh), Image.LANCZOS)
-
-    # Lissage léger
-    if blur_radius > 0:
-        bg = bg.filter(ImageFilter.GaussianBlur(radius=blur_radius))
-
-    wall_arr = np.array(bg).astype(float)
-
-    # Normalisation GLOBALE du fond (préserve la teinte entre canaux)
-    wall_min = wall_arr.min()
-    wall_max = wall_arr.max()
-    wall_norm = (wall_arr - wall_min) / (wall_max - wall_min + 1e-6) * (bg_high - bg_low) + bg_low
-
-    # Masque : 0=encre, 1=fond
-    mask = synth_norm / 255.0                          # (h, w)
+    # Léger flou sur le masque pour adoucir les bords de l'encre
+    mask_pil = Image.fromarray(synth_norm.astype(np.uint8))
+    mask_pil = mask_pil.filter(ImageFilter.GaussianBlur(radius=cfg['mask_blur']))
+    mask = np.array(mask_pil).astype(float) / 255.0   # 0=encre, 1=fond
+    mask = mask ** cfg.get('mask_gamma', 1.5)          # gamma selon config
     mask3 = np.stack([mask, mask, mask], axis=2)       # (h, w, 3)
 
-    # Encre : fond teinté très sombre
-    ink = wall_norm * (synth_norm[:, :, np.newaxis] / 255.0) * 0.2
+    # Échantillonner les couleurs depuis une vraie image aléatoire
+    bg_sample = random.choice(backgrounds)
+    bg_color, ink_color = sample_colors(bg_sample, cfg)
 
-    # Composition
-    result = mask3 * wall_norm + (1 - mask3) * ink
+    # Interpolation directe : fond → bg_color, encre → ink_color
+    result = mask3 * bg_color + (1 - mask3) * ink_color
     result = np.clip(result, 0, 255).astype(np.uint8)
 
     return Image.fromarray(result, mode='RGB')
@@ -172,6 +196,8 @@ Exemples :
                         help='Borne basse normalisation fond (défaut: 160)')
     parser.add_argument('--bg_high',    type=float, default=240,
                         help='Borne haute normalisation fond (défaut: 240)')
+    parser.add_argument('--config',     default=DEFAULT_CONFIG, choices=list(CONFIGS.keys()),
+                        help='Config prédéfinie : IAM ou RIMES (défaut: IAM)')
     parser.add_argument('--seed',       type=int, default=None,
                         help='Graine aléatoire pour la reproductibilité')
     args = parser.parse_args()
@@ -179,12 +205,14 @@ Exemples :
     if args.seed is not None:
         random.seed(args.seed)
 
+    cfg = CONFIGS[args.config]
+    print(f"Config : {args.config} (bg_p={cfg['bg_percentile']}, ink_p={cfg['ink_percentile']}, ink_darken={cfg['ink_darken']})")
     print("Chargement des fonds...")
     backgrounds = load_backgrounds(args.real_dir)
 
     if args.synth:
         output = args.output or str(Path(args.synth).stem) + '_styled.png'
-        img = compose(args.synth, backgrounds, args.blur, args.bg_low, args.bg_high)
+        img = compose(args.synth, backgrounds, args.blur, args.bg_low, args.bg_high, cfg=cfg)
         img.save(output)
         print(f"-> {output}")
 
@@ -200,7 +228,7 @@ Exemples :
         for synth_path in synth_files:
             try:
                 img = compose(str(synth_path), backgrounds, args.blur,
-                              args.bg_low, args.bg_high)
+                              args.bg_low, args.bg_high, cfg=cfg)
                 img.save(out_dir / synth_path.name)
             except Exception as e:
                 print(f"  [!] {synth_path.name} : {e}")

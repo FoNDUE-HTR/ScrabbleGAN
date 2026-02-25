@@ -372,6 +372,16 @@ def step_wordlevel(xml_dir: str, model_path: str, output_dir: str = None,
 
     xml_files = sorted(xml_dir.glob('*.xml'))
     print(f"Traitement de {len(xml_files)} fichiers...")
+    # Copier les images dans le dossier de sortie
+    if out_dir:
+        copied_imgs = 0
+        for ext in IMG_EXTS:
+            for img_file in img_dir.glob(f'*{ext}'):
+                shutil.copy(img_file, out_dir / img_file.name)
+                copied_imgs += 1
+        if copied_imgs:
+            print(f"  -> {copied_imgs} images copiées dans {out_dir}")
+
     for xml_path in xml_files:
         img_path = None
         for ext in IMG_EXTS:
@@ -445,13 +455,38 @@ def _filter_text(text: str, valid_chars: set, report_changes: list = None) -> st
     return filtered_encoded
 
 
-def step_normalize(xml_dir: str, charmap: str, output_dir: str = None, report: bool = False):
+def step_normalize(xml_dir: str, charmap: str, output_dir: str = None,
+                   report: bool = False, addchar: str = None):
     print("=== NORMALIZE ===")
     valid_chars = _load_charmap(charmap)
-    print(f"Char_map : {len(valid_chars)} caractères valides")
+    print(f"Char_map chargé : {len(valid_chars)} caractères valides")
+    if addchar:
+        remove_chars = set()
+        with open(addchar, 'r', encoding='utf-8') as f:
+            for line in f:
+                c = line.strip('\n').strip('\r')
+                if c:
+                    if len(c) != 1:
+                        raise ValueError(f"Caractère invalide dans {addchar!r}: {c!r}")
+                    remove_chars.add(c)
+        intersection = valid_chars.intersection(remove_chars)
+        if intersection:
+            print(f"  Retirés : {sorted(intersection)}")
+        valid_chars.difference_update(remove_chars)
+        print(f"  Total final : {len(valid_chars)} caractères valides")
     xml_dir    = Path(xml_dir)
     output_dir = Path(output_dir) if output_dir else None
     if output_dir: output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Copier les images dans le dossier de sortie
+    if output_dir:
+        copied_imgs = 0
+        for ext in IMG_EXTS:
+            for img_file in xml_dir.glob(f'*{ext}'):
+                shutil.copy(img_file, output_dir / img_file.name)
+                copied_imgs += 1
+        if copied_imgs:
+            print(f"  -> {copied_imgs} images copiées dans {output_dir}")
 
     xml_files = sorted(xml_dir.glob('*.xml'))
     print(f"Traitement de {len(xml_files)} fichiers...")
@@ -662,9 +697,52 @@ def step_generate(weights: str, charmap: str, alto_dir: str, output_dir: str, n_
     config_path   = SCRABBLEGAN_DIR / "config.py"
     config_txt    = config_path.read_text(encoding="utf-8")
     lex_abs       = str((SCRABBLEGAN_DIR / "data" / "Lexicon" / "Lexique383.tsv").resolve())
-    config_patched = re.sub(r"lexicon_file\s*=.*", f"lexicon_file = r'{lex_abs}'", config_txt)
-    config_patched = re.sub(r"num_chars\s*=.*", f"num_chars = {num_chars_val}", config_patched)
-    config_path.write_text(config_patched, encoding="utf-8")
+
+    # Réécriture complète de config.py pour garantir num_chars correct
+    # (le regex seul ne suffit pas si la valeur par défaut ne correspond pas au checkpoint)
+    config_path.write_text(f"""
+# === PATCH GENERATE (ajouté automatiquement) ===
+import torch as _torch
+
+class Config:
+    dataset = 'RIMES'
+    data_folder_path = './RIMES/'
+    img_h = 32
+    char_w = 16
+    partition = 'tr'
+    batch_size = 8
+    num_epochs = 100
+    epochs_lr_decay = 100
+    resume_training = True
+    start_epoch = 0
+    train_gen_steps = 4
+    grad_alpha = 1
+    grad_balance = True
+    data_file = ''
+    lexicon_file_name = 'Lexique383.tsv'
+    lexicon_file = r'{lex_abs}'
+    lmdb_output = './data/custom_lmdb'
+    architecture = 'ScrabbleGAN'
+    r_ks = [3, 3, 3, 3, 3, 3, 2]
+    r_pads = [1, 1, 1, 1, 1, 1, 0]
+    r_fs = [64, 128, 256, 256, 512, 512, 512]
+    resolution = 16
+    bn_linear = 'SN'
+    g_shared = False
+    g_lr = 2e-4
+    d_lr = 2e-4
+    r_lr = 2e-4
+    g_betas = [0., 0.999]
+    d_betas = [0., 0.999]
+    r_betas = [0., 0.999]
+    g_loss_fn = 'HingeLoss'
+    d_loss_fn = 'HingeLoss'
+    r_loss_fn = 'CTCLoss'
+    z_dim = 128
+    num_chars = {num_chars_val}
+    weight_dir = './weights'
+    device = _torch.device('cuda' if _torch.cuda.is_available() else 'cpu')
+""", encoding="utf-8")
 
     try:
         for mod in list(sys.modules.keys()):
@@ -926,6 +1004,8 @@ def main():
     parser.add_argument("--charmap",    help="[normalize/finetune/generate] Char_map pickle")
     parser.add_argument("--report",     action="store_true",
                         help="[normalize] Afficher les changements effectués")
+    parser.add_argument("--addchar",    default=None, metavar="FILE",
+                        help="[normalize] Fichier txt (1 caractère/ligne) à retirer du char_map")
 
     # finetune / generate
     parser.add_argument("--weights",    help="[finetune/generate] Checkpoint ScrabbleGAN")
@@ -956,7 +1036,7 @@ def main():
         step_wordlevel(args.xml_dir, args.model, args.output_dir,
                        img_dir=args.img_dir, verbose=args.verbose)
     elif args.step == "normalize":
-        step_normalize(args.xml_dir, args.charmap, args.output_dir, report=args.report)
+        step_normalize(args.xml_dir, args.charmap, args.output_dir, report=args.report, addchar=args.addchar)
     elif args.step == "finetune":
         step_finetune(args.weights, args.charmap, args.alto_dir,
                       args.output_dir, args.epochs, save_patches_dir=args.save_patches)

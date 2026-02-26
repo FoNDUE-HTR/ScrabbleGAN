@@ -858,7 +858,7 @@ class Config:
         line_id   = f"eSc_line_{line_idx:06d}"
         block_id  = f"eSc_block_{line_idx:06d}"
         baseline  = f"0 {int(img_h * 0.80)} {img_w} {int(img_h * 0.80)}"
-        poly_line = f"0 0 0 {img_h} {img_w} {img_h} {img_w} 0"
+        poly_line = f"0 0 0 {img_h-1} {img_w-1} {img_h-1} {img_w-1} 0"
         strings_xml = []
         for w_idx, (word, x1, x2) in enumerate(word_positions):
             w_width = max(1, x2 - x1)
@@ -866,7 +866,7 @@ class Config:
             for c_idx, char in enumerate(word):
                 char_x = x1 + int(w_width * c_idx / max(1, len(word)))
                 char_w = max(1, w_width // max(1, len(word)))
-                gp = f"{char_x} 0 {char_x} {img_h} {char_x+char_w} {img_h} {char_x+char_w} 0"
+                gp = f"{char_x} 0 {char_x} {img_h-1} {min(char_x+char_w, img_w)-1} {img_h-1} {min(char_x+char_w, img_w)-1} 0"
                 glyphs.append(
                     f'              <Glyph ID="char_{w_idx}_{c_idx}" CONTENT="{xml_escape(char, quote=True)}"\n'
                     f'                     HPOS="{char_x}" VPOS="0" WIDTH="{char_w}" HEIGHT="{img_h}" GC="1.0000">\n'

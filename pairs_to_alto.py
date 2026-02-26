@@ -62,7 +62,7 @@ def make_alto(stem: str, text: str, img_path: Path) -> str:
         f'          <TextLine ID="{e(stem, quote=True)}"\n'
         f'                    BASELINE="0 {baseline_y} {w} {baseline_y}"\n'
         f'                    HPOS="0" VPOS="0" WIDTH="{w}" HEIGHT="{h}">\n'
-        f'            <Shape><Polygon POINTS="0 0 {w} 0 {w} {h} 0 {h}"/></Shape>\n'
+        f'            <Shape><Polygon POINTS="0 0 {w-1} 0 {w-1} {h-1} 0 {h-1}"/></Shape>\n'
         f'            <String CONTENT="{e(text, quote=True)}"\n'
         f'                    HPOS="0" VPOS="0" WIDTH="{w}" HEIGHT="{h}"/>\n'
         '          </TextLine>\n'

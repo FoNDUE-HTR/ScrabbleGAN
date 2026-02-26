@@ -868,12 +868,12 @@ class Config:
                 char_w = max(1, w_width // max(1, len(word)))
                 gp = f"{char_x} 0 {char_x} {img_h} {char_x+char_w} {img_h} {char_x+char_w} 0"
                 glyphs.append(
-                    f'              <Glyph ID="char_{w_idx}_{c_idx}" CONTENT="{char}"\n'
+                    f'              <Glyph ID="char_{w_idx}_{c_idx}" CONTENT="{xml_escape(char, quote=True)}"\n'
                     f'                     HPOS="{char_x}" VPOS="0" WIDTH="{char_w}" HEIGHT="{img_h}" GC="1.0000">\n'
                     f'                <Shape><Polygon POINTS="{gp}"/></Shape>\n'
                     f'              </Glyph>')
             strings_xml.append(
-                f'            <String ID="segment_{w_idx}" CONTENT="{word}"\n'
+                f'            <String ID="segment_{w_idx}" CONTENT="{xml_escape(word, quote=True)}"\n'
                 f'                    HPOS="{x1}" VPOS="0" WIDTH="{w_width}" HEIGHT="{img_h}" WC="1.0000">\n'
                 + ''.join(glyphs) + '\n            </String>')
         return (
@@ -883,7 +883,7 @@ class Config:
             '      xsi:schemaLocation="http://www.loc.gov/standards/alto/ns-v4#'
             ' http://www.loc.gov/standards/alto/v4/alto-4-2.xsd">\n'
             '  <Description><MeasurementUnit>pixel</MeasurementUnit>\n'
-            f'    <sourceImageInformation><fileName>{img_path.name}</fileName></sourceImageInformation>\n'
+            f'    <sourceImageInformation><fileName>{xml_escape(img_path.name, quote=True)}</fileName></sourceImageInformation>\n'
             '  </Description>\n'
             f'  <Layout><Page WIDTH="{img_w}" HEIGHT="{img_h}" PHYSICAL_IMG_NR="{line_idx}" ID="eSc_dummypage_">\n'
             f'    <PrintSpace HPOS="0" VPOS="0" WIDTH="{img_w}" HEIGHT="{img_h}">\n'
